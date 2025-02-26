@@ -33,7 +33,7 @@ class ChatListView extends ConsumerWidget {
               Icomoon.person,
               color: AppColors.black,
             ),
-            onPressed: () => context.go('/${ProfileView.routePath}'),
+            onPressed: () => context.push('/${ProfileView.routePath}'),
             tooltip: 'Перейти в профиль',
           ),
           IconButton(
