@@ -1,11 +1,11 @@
 // lib/features/auth/presentation/view/components/forgot_password_dialog.dart
 import 'package:flutter/material.dart';
+import 'package:flutter_chat/core/utils/typedef/typedef.dart';
 import 'package:flutter_chat/core/utils/validators/validators.dart';
 import 'package:flutter_chat/features/auth/presentation/view/components/auth_widgets.dart';
 import 'package:flutter_chat/features/auth/presentation/view_model/login_view_model.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-typedef VoidStringFunc = void Function(String);
 
 class ForgotPasswordDialog extends ConsumerStatefulWidget {
 

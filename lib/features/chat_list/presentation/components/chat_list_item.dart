@@ -1,13 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_chat/app/theme/colors.dart';
 import 'package:flutter_chat/core/utils/extentions/date_extensions.dart';
+import 'package:flutter_chat/core/utils/typedef/typedef.dart';
 import 'package:flutter_chat/features/chat/data/models/atachment_type.dart';
 import 'package:flutter_chat/features/chat/data/models/chat.dart';
 import 'package:flutter_chat/features/chat/data/models/message.dart';
 import 'package:flutter_chat/features/common/widgets/user_avatar.dart';
 import 'package:intl/intl.dart';
 
-typedef VoidDismissDirection = void Function(DismissDirection direction);
 
 class ChatListItem extends StatelessWidget {
 

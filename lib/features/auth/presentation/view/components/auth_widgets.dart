@@ -1,12 +1,13 @@
-// lib/presentation/auth/widgets/auth_button.dart
+// lib/features/auth/presentation/view/components/auth_widgets.dart
 import 'package:flutter/material.dart';
 import 'package:flutter_chat/app/theme/colors.dart';
+import 'package:flutter_chat/core/utils/typedef/typedef.dart';
 
+/// A reusable button for authentication screens
 class AuthButton extends StatelessWidget {
 
   const AuthButton({
-    required this.text, 
-    super.key,
+    required this.text, super.key,
     this.onPressed,
     this.isLoading = false,
     this.backgroundColor,
@@ -29,7 +30,8 @@ class AuthButton extends StatelessWidget {
           borderRadius: BorderRadius.circular(12),
         ),
         elevation: 0,
-        disabledBackgroundColor: backgroundColor?.withOpacity(0.6) ?? AppColors.myMessageBubble.withOpacity(0.6),
+        disabledBackgroundColor: backgroundColor?.withOpacity(0.6) 
+            ?? AppColors.myMessageBubble.withOpacity(0.6),
       ),
       child: isLoading
           ? const SizedBox(
@@ -50,12 +52,11 @@ class AuthButton extends StatelessWidget {
     );
 }
 
+/// A reusable text field for authentication screens
 class AuthTextField extends StatelessWidget {
 
   const AuthTextField({
-    required this.controller, 
-    required this.labelText, 
-    super.key,
+    required this.controller, required this.labelText, super.key,
     this.hintText,
     this.prefixIcon,
     this.suffixIcon,
@@ -63,6 +64,9 @@ class AuthTextField extends StatelessWidget {
     this.keyboardType = TextInputType.text,
     this.validator,
     this.enabled = true,
+    this.textInputAction = TextInputAction.next,
+    this.onSubmitted,
+    this.focusNode,
   });
   final TextEditingController controller;
   final String labelText;
@@ -73,14 +77,21 @@ class AuthTextField extends StatelessWidget {
   final TextInputType keyboardType;
   final String? Function(String?)? validator;
   final bool enabled;
+  final TextInputAction textInputAction;
+  final VoidStringFunc? onSubmitted;
+  final FocusNode? focusNode;
 
   @override
-  Widget build(BuildContext context) => TextFormField(
+  Widget build(BuildContext context) => 
+  TextFormField(
       controller: controller,
       obscureText: obscureText,
       keyboardType: keyboardType,
       validator: validator,
       enabled: enabled,
+      focusNode: focusNode,
+      textInputAction: textInputAction,
+      onFieldSubmitted: onSubmitted,
       style: const TextStyle(fontSize: 16),
       decoration: InputDecoration(
         labelText: labelText,
@@ -129,12 +140,11 @@ class AuthTextField extends StatelessWidget {
     );
 }
 
-
+/// A reusable header for authentication screens
 class AuthHeader extends StatelessWidget {
 
   const AuthHeader({
-    required this.title, 
-    super.key,
+    required this.title, super.key,
     this.subtitle,
   });
   final String title;
@@ -193,51 +203,14 @@ class AuthHeader extends StatelessWidget {
     );
 }
 
-
-class SocialButton extends StatelessWidget {
-
-  const SocialButton({
-    required this.text, required this.icon, super.key,
-    this.onPressed,
-    this.backgroundColor = Colors.white,
-    this.textColor = Colors.black87,
-    this.iconColor = Colors.black87,
+/// A divider with "or" text in the middle
+class OrDivider extends StatelessWidget {
+  
+  const OrDivider({
+    super.key,
+    this.text = 'или',
   });
   final String text;
-  final IconData icon;
-  final VoidCallback? onPressed;
-  final Color backgroundColor;
-  final Color textColor;
-  final Color iconColor;
-
-  @override
-  Widget build(BuildContext context) => ElevatedButton.icon(
-      onPressed: onPressed,
-      style: ElevatedButton.styleFrom(
-        backgroundColor: backgroundColor,
-        foregroundColor: textColor,
-        padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 16),
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(12),
-          side: BorderSide(color: Colors.grey.shade300),
-        ),
-        elevation: 0,
-      ),
-      icon: Icon(icon, color: iconColor),
-      label: Text(
-        text,
-        style: TextStyle(
-          fontSize: 16,
-          fontWeight: FontWeight.w500,
-          color: textColor,
-        ),
-      ),
-    );
-}
-
-
-class OrDivider extends StatelessWidget {
-  const OrDivider({super.key});
 
   @override
   Widget build(BuildContext context) => Row(
@@ -251,7 +224,7 @@ class OrDivider extends StatelessWidget {
         Padding(
           padding: const EdgeInsets.symmetric(horizontal: 16),
           child: Text(
-            'или',
+            text,
             style: TextStyle(
               fontSize: 14,
               color: Colors.grey.shade600,
