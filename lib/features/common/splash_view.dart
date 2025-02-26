@@ -25,9 +25,7 @@ class _SplashViewState extends State<SplashView> {
   Future<void> _redirect() async {
     // await for for the widget to mount
     await Future.delayed(Durations.extralong1, () {});
-
     final session = supabase.auth.currentSession;
-    log('SplashView redirect: $session');
     if (mounted) {
       if (session == null) {
         context.go('/${LoginView.routePath}');
@@ -40,7 +38,6 @@ class _SplashViewState extends State<SplashView> {
   @override
   void didUpdateWidget(covariant SplashView oldWidget) {
         _redirect();
-
     super.didUpdateWidget(oldWidget);
   }
 

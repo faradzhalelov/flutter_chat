@@ -18,36 +18,13 @@ part 'router.g.dart';
 
 /// Router configuration for the app using GoRouter
 @riverpod
-GoRouter appRouter(Ref ref) {
-  final authState = ref.watch(authSessionStreamProvider).asData?.value;
-
-  return GoRouter(
+GoRouter appRouter(Ref ref) => GoRouter(
     initialLocation: '/${SplashView.routePath}',
     debugLogDiagnostics: true,
     navigatorKey: ref.watch(routerKeyProvider),
     observers: [
       MyNavigatorObserver(),
     ],
-    // Global redirect based on authentication state
-    redirect: (context, state) {
-      final currentPath = state.uri.path;
-
-      final isAuthScreen = currentPath == '/${LoginView.routePath}' ||
-          currentPath == '/${RegisterView.routePath}';
-
-      // Если не аутентифицирован, пускаем только на экраны входа/регистрации
-      if (authState == null) {
-        return isAuthScreen ? null : '/${LoginView.routePath}';
-      }
-
-      // Если аутентифицирован и пытается попасть на экран входа/регистрации
-      if (isAuthScreen) {
-        return '/';
-      }
-
-      // Никаких перенаправлений
-      return null;
-    },
 
     // Error handling
     errorBuilder: (context, state) => ErrorView(state),
@@ -88,7 +65,6 @@ GoRouter appRouter(Ref ref) {
       ),
     ],
   );
-}
 
 /// Provider for router key to force rebuild when needed
 @riverpod
