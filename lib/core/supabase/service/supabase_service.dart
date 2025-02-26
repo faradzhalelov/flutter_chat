@@ -1,14 +1,8 @@
 import 'package:flutter/foundation.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
-import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:riverpod_annotation/riverpod_annotation.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
-part 'supabase_service.g.dart';
-
-
-@riverpod
-SupabaseClient supabase(Ref ref) => Supabase.instance.client;
+final supabase = Supabase.instance.client;
 
 class SupabaseService {
 
@@ -26,11 +20,9 @@ class SupabaseService {
     );
   }
   
-  // Access client from anywhere in the app
-  static SupabaseClient get client => Supabase.instance.client;
   
   // Access current user
-  static User? get currentUser => client.auth.currentUser;
+  static User? get currentUser => supabase.auth.currentUser;
   
   // Authentication methods
   static Future<AuthResponse> signUp({
@@ -38,7 +30,7 @@ class SupabaseService {
     required String password,
     required String username,
   }) async {
-    final response = await client.auth.signUp(
+    final response = await supabase.auth.signUp(
       email: email,
       password: password,
       data: {'username': username},
@@ -46,7 +38,7 @@ class SupabaseService {
     
     if (response.user != null) {
       // Create user profile in the users table
-      await client.from('users').insert({
+      await supabase.from('users').insert({
         'id': response.user!.id,
         'email': email,
         'username': username,
@@ -59,10 +51,10 @@ class SupabaseService {
   static Future<AuthResponse> signIn({
     required String email,
     required String password,
-  }) => client.auth.signInWithPassword(
+  }) => supabase.auth.signInWithPassword(
       email: email,
       password: password,
     );
   
-  static Future<void> signOut() => client.auth.signOut();
+  static Future<void> signOut() => supabase.auth.signOut();
 }

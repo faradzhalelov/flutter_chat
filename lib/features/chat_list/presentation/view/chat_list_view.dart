@@ -2,9 +2,11 @@ import 'package:flutter/material.dart';
 import 'package:flutter_chat/app/theme/colors.dart';
 import 'package:flutter_chat/app/theme/icons.dart';
 import 'package:flutter_chat/app/theme/text_styles.dart';
+import 'package:flutter_chat/core/auth/service/auth_service.dart';
 import 'package:flutter_chat/core/supabase/repository/supabase_repository.dart';
 import 'package:flutter_chat/features/chat_list/components/create_chat_dialog.dart';
 import 'package:flutter_chat/features/chat_list/presentation/components/chat_list_item.dart';
+import 'package:flutter_chat/features/profile/presentation/view/profile_view.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
@@ -14,7 +16,7 @@ class ChatListView extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final chatsAsync = ref.watch(chatListStreamProvider);
-    
+
     return Scaffold(
       backgroundColor: Colors.white,
       appBar: AppBar(
@@ -25,19 +27,36 @@ class ChatListView extends ConsumerWidget {
             color: AppColors.black,
           ),
         ),
+        actions: [
+          IconButton(
+            icon: const Icon(
+              Icomoon.person,
+              color: AppColors.black,
+            ),
+            onPressed: () => context.go('/${ProfileView.routePath}'),
+            tooltip: 'Перейти в профиль',
+          ),
+          IconButton(
+            icon: const Icon(
+              Icomoon.outRight,
+              color: AppColors.black,
+            ),
+            onPressed: () async => ref.read(authStateProvider.notifier).signOut(context),
+            tooltip: 'Выйти из аккаунта',
+          ),
+        ],
         centerTitle: false,
         elevation: 0,
         toolbarHeight: 60,
       ),
       floatingActionButton: IconButton(
-            icon: const Icon(
-              Icomoon.plusS, 
-              color: AppColors.black,
-            ),
-            onPressed: () => context.showCreateChatDialog(),
-            tooltip: 'Создать чат',
-          ),
-
+        icon: const Icon(
+          Icomoon.plusS,
+          color: AppColors.black,
+        ),
+        onPressed: () => context.showCreateChatDialog(),
+        tooltip: 'Создать чат',
+      ),
       body: Column(
         children: [
           // Search bar
@@ -57,9 +76,7 @@ class ChatListView extends ConsumerWidget {
                   prefixIcon: const Icon(
                     Icomoon.searchS,
                     color: AppColors.gray,
-                  
                   ),
-                  
                   contentPadding: const EdgeInsets.symmetric(
                     vertical: 12,
                     horizontal: 8,
@@ -68,8 +85,12 @@ class ChatListView extends ConsumerWidget {
               ),
             ),
           ),
-          const SizedBox(height: 24,),
-          const Divider(color: AppColors.divider,),
+          const SizedBox(
+            height: 24,
+          ),
+          const Divider(
+            color: AppColors.divider,
+          ),
           // Chat list
           Expanded(
             child: chatsAsync.when(
@@ -79,7 +100,7 @@ class ChatListView extends ConsumerWidget {
                     child: Text('Нет диалогов'),
                   );
                 }
-                
+
                 return ListView.builder(
                   itemCount: chats.length,
                   itemBuilder: (context, index) {

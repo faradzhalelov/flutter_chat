@@ -15,12 +15,11 @@ import 'package:uuid/uuid.dart';
 /// Implementation of ChatRepository using Supabase as the backend
 class SupabaseChatRepository implements ChatRepository {
   
-  SupabaseChatRepository(this._client);
-  final SupabaseClient _client;
+  SupabaseChatRepository();
   
   /// Gets the current user ID or throws an exception if not authenticated
   String get _currentUserId {
-    final userId = _client.auth.currentUser?.id;
+    final userId = supabase.auth.currentUser?.id;
     if (userId == null) throw Exception('User not authenticated');
     return userId;
   }
@@ -31,7 +30,7 @@ class SupabaseChatRepository implements ChatRepository {
     final userId = _currentUserId;
     
     // Создаем стрим с постоянным обновлением
-    return _client
+    return supabase
       .from('chat_members')
       .stream(primaryKey: ['id'])
       .eq('user_id', userId)
@@ -41,7 +40,7 @@ class SupabaseChatRepository implements ChatRepository {
         if (chatIds.isEmpty) return <ChatModel>[];
         
         // Получаем чаты с сортировкой по последнему сообщению
-        final chatsResponse = await _client
+        final chatsResponse = await supabase
           .from('chats')
           .select()
           .filter('id', 'in', chatIds)
@@ -51,7 +50,7 @@ class SupabaseChatRepository implements ChatRepository {
         
         for (final chatData in chatsResponse) {
           // Находим других участников чата
-          final otherMembersResponse = await _client
+          final otherMembersResponse = await supabase
             .from('chat_members')
             .select('user_id')
             .eq('chat_id', chatData['id'] as String)
@@ -61,14 +60,14 @@ class SupabaseChatRepository implements ChatRepository {
           
           // Получаем данные другого пользователя
           final otherUserId = otherMembersResponse[0]['user_id'];
-          final userResponse = await _client
+          final userResponse = await supabase
             .from('users')
             .select()
             .eq('id', otherUserId as String)
             .single();
           
           // Получаем последнее сообщение
-          final lastMessageResponse = await _client
+          final lastMessageResponse = await supabase
             .from('messages')
             .select()
             .eq('chat_id', chatData['id'] as String)
@@ -97,7 +96,7 @@ class SupabaseChatRepository implements ChatRepository {
     try {
       final userId = _currentUserId;
       
-      final response = await _client
+      final response = await supabase
         .from('messages')
         .select()
         .eq('chat_id', chatId)
@@ -123,7 +122,7 @@ class SupabaseChatRepository implements ChatRepository {
       if (existingChat != null) return existingChat;
       
       // Create a new chat
-      final chatResponse = await _client
+      final chatResponse = await supabase
         .from('chats')
         .insert({
           'created_at': DateTime.now().toIso8601String(),
@@ -135,7 +134,7 @@ class SupabaseChatRepository implements ChatRepository {
       final chatId = chatResponse['id'] as String;
       
       // Add both users to the chat
-      await _client.from('chat_members').insert([
+      await supabase.from('chat_members').insert([
         {'chat_id': chatId, 'user_id': userId},
         {'chat_id': chatId, 'user_id': otherUserId},
       ]);
@@ -150,7 +149,7 @@ class SupabaseChatRepository implements ChatRepository {
   Future<String?> _findExistingChat(String userId, String otherUserId) async {
     try {
       // Find chats where the current user is a member
-      final userChatsResponse = await _client
+      final userChatsResponse = await supabase
         .from('chat_members')
         .select('chat_id')
         .eq('user_id', userId);
@@ -159,7 +158,7 @@ class SupabaseChatRepository implements ChatRepository {
       if (chatIds.isEmpty) return null;
       
       // Find which of those chats the other user is also a member of
-      final otherUserChatsResponse = await _client
+      final otherUserChatsResponse = await supabase
         .from('chat_members')
         .select('chat_id')
         .eq('user_id', otherUserId)
@@ -173,7 +172,7 @@ class SupabaseChatRepository implements ChatRepository {
       final chatId = otherUserChatsResponse[0]['chat_id'] as String;
       
       // Count members in the chat
-      final membersCountResponse = await _client
+      final membersCountResponse = await supabase
         .from('chat_members')
         .select()
         .eq('chat_id', chatId);
@@ -204,7 +203,7 @@ class SupabaseChatRepository implements ChatRepository {
         'is_read': false,
       };
       
-      final response = await _client
+      final response = await supabase
         .from('messages')
         .insert(messageData)
         .select()
@@ -288,12 +287,12 @@ class SupabaseChatRepository implements ChatRepository {
       final uuid = const Uuid().v4();
       final storagePath = '$type/$userId/$uuid$fileExt';
       
-      await _client.storage.from('attachments').upload(
+      await supabase.storage.from('attachments').upload(
         storagePath,
         file,
       );
       
-      final url = _client.storage.from('attachments').getPublicUrl(storagePath);
+      final url = supabase.storage.from('attachments').getPublicUrl(storagePath);
       return (url: url, name: fileName);
     } catch (e) {
       throw _handleError(e);
@@ -321,7 +320,7 @@ class SupabaseChatRepository implements ChatRepository {
         'is_read': false,
       };
       
-      final response = await _client
+      final response = await supabase
         .from('messages')
         .insert(messageData)
         .select()
@@ -338,7 +337,7 @@ class SupabaseChatRepository implements ChatRepository {
   /// Update the last_message_at timestamp in a chat
   Future<void> _updateChatLastMessageTime(String chatId) async {
     try {
-      await _client
+      await supabase
         .from('chats')
         .update({
           'last_message_at': DateTime.now().toIso8601String(),
@@ -354,7 +353,7 @@ class SupabaseChatRepository implements ChatRepository {
     try {
       final userId = _currentUserId;
       
-      await _client
+      await supabase
         .from('messages')
         .update({'is_read': true})
         .eq('chat_id', chatId)
@@ -369,7 +368,7 @@ class SupabaseChatRepository implements ChatRepository {
   Future<void> deleteChat(String chatId) async {
     try {
       // This will cascade delete all messages and chat_members due to FK constraints
-      await _client.from('chats').delete().eq('id', chatId);
+      await supabase.from('chats').delete().eq('id', chatId);
     } catch (e) {
       throw _handleError(e);
     }
@@ -380,7 +379,7 @@ Stream<MessageModel> subscribeToMessages(String chatId) {
   try {
     final userId = _currentUserId;
     
-    return _client
+    return supabase
       .from('messages')
       .stream(primaryKey: ['id'])
       .eq('chat_id', chatId)
@@ -403,7 +402,7 @@ Stream<MessageModel> subscribeToMessages(String chatId) {
   @override
   Future<List<ChatMemberModel>> getChatMembers(String chatId) async {
     try {
-      final response = await _client
+      final response = await supabase
         .from('chat_members')
         .select()
         .eq('chat_id', chatId);
@@ -421,7 +420,7 @@ Stream<MessageModel> subscribeToMessages(String chatId) {
   @override
   Future<UserModel> getUserById(String userId) async {
     try {
-      final response = await _client
+      final response = await supabase
         .from('users')
         .select()
         .eq('id', userId)
@@ -448,10 +447,7 @@ Stream<MessageModel> subscribeToMessages(String chatId) {
 }
 
 /// Provider for the chat repository
-final chatRepositoryProvider = Provider<ChatRepository>((ref) {
-  final client = ref.watch(supabaseProvider);
-  return SupabaseChatRepository(client);
-});
+final chatRepositoryProvider = Provider<ChatRepository>((ref) => SupabaseChatRepository());
 
 /// Stream provider for chat list
 final chatListStreamProvider = StreamProvider<List<ChatModel>>((ref) async* {
@@ -473,8 +469,7 @@ final chatMessagesProvider = StreamProvider.family<List<MessageModel>, String>((
   await repository.markMessagesAsRead(chatId);
   
   // Listen to new messages for this chat
-  final client = SupabaseService.client;
-  final stream = client.from('messages')
+  final stream = supabase.from('messages')
     .stream(primaryKey: ['id'])
     .eq('chat_id', chatId);
   

@@ -4,6 +4,8 @@ import 'dart:developer';
 import 'package:flutter/material.dart';
 import 'package:flutter_chat/core/auth/service/auth_service.dart';
 import 'package:flutter_chat/core/utils/validators/validators.dart';
+import 'package:flutter_chat/features/common/splash_view.dart';
+import 'package:go_router/go_router.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
 part 'register_view_model.g.dart';
@@ -45,7 +47,7 @@ class RegisterViewModel extends _$RegisterViewModel {
       Validators.validatePasswordConfirmation(value, passwordController.text);
 
   /// Handles the registration process
-  Future<void> register() async {
+  Future<void> register(BuildContext context) async {
     // Validate form
     if (!formKey.currentState!.validate()) {
       return;
@@ -66,8 +68,9 @@ class RegisterViewModel extends _$RegisterViewModel {
             password: password,
             username: username,
           );
-
-      // No need to navigate, the router will handle it
+      if (context.mounted) {
+        context.go('/${SplashView.routePath}');
+      }
     } catch (e) {
       log('register error: $e');
       // Set error state

@@ -3,6 +3,8 @@ import 'dart:developer';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_chat/core/auth/service/auth_service.dart';
+import 'package:flutter_chat/features/common/splash_view.dart';
+import 'package:go_router/go_router.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
 part 'login_view_model.g.dart';
@@ -30,7 +32,7 @@ class LoginViewModel extends _$LoginViewModel {
   }
 
   /// Handles the login process
-  Future<void> login() async {
+  Future<void> login(BuildContext context) async {
     // Validate form
     if (!formKey.currentState!.validate()) {
       return;
@@ -45,12 +47,18 @@ class LoginViewModel extends _$LoginViewModel {
       final password = passwordController.text;
 
       // Attempt to sign in
-      await ref.read(authStateProvider.notifier).signIn(
+      await ref
+          .read(authStateProvider.notifier)
+          .signIn(
             email: email,
             password: password,
-          );
-
-      // No need to navigate, the router will handle it
+          )
+          .whenComplete(() {
+        if (context.mounted) {
+          log('go splash');
+          context.go('/${SplashView.routePath}');
+        }
+      });
     } catch (e) {
       log('login error:$e');
       // Set error state

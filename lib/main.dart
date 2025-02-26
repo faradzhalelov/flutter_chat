@@ -4,7 +4,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_chat/app/app.dart';
 import 'package:flutter_chat/app/error_app.dart';
-import 'package:flutter_chat/core/di/di.dart';
 import 'package:flutter_chat/core/supabase/service/supabase_service.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
@@ -16,18 +15,12 @@ void main() async {
     DeviceOrientation.portraitUp,
     DeviceOrientation.portraitDown,
   ]);
-  // Create ProviderContainer for dependency injection
-  final container = ProviderContainer();
-
   //todo: zoneGuard, crash analytics, error handler
   try {
     await SupabaseService.initialize();
-    // Initialize dependencies
-    DependencyInjection.init(container);
     runApp(
-      UncontrolledProviderScope(
-        container: container,
-        child: const MyApp(),
+      const ProviderScope(
+        child:  MyApp(),
       ),
     );
   } catch (e) {

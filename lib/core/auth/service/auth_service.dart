@@ -1,7 +1,10 @@
 // lib/core/services/auth_service.dart
 import 'dart:developer';
 import 'dart:io';
+import 'package:flutter/material.dart';
+import 'package:flutter_chat/features/common/splash_view.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 import 'package:path/path.dart' as path;
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 import 'package:supabase_flutter/supabase_flutter.dart' as supabase;
@@ -23,12 +26,11 @@ supabase.User? currentUser(Ref ref) {
 /// Provider for auth state to manage authentication
 @riverpod
 class AuthState extends _$AuthState {
-
   @override
   AsyncValue<supabase.User?> build() {
     // Начинаем с попытки получить текущего пользователя
     final currentUser = supabase.Supabase.instance.client.auth.currentUser;
-    
+
     // Если пользователь уже есть, возвращаем его немедленно
     if (currentUser != null) {
       return AsyncData(currentUser);
@@ -125,14 +127,20 @@ class AuthState extends _$AuthState {
   }
 
   /// Sign out the current user
-  Future<void> signOut() async {
+  Future<void> signOut(BuildContext context) async {
     state = const AsyncLoading();
-
     try {
-      await supabase.Supabase.instance.client.auth.signOut();
-      state = const AsyncData(null);
+      await supabase.Supabase.instance.client.auth.signOut().whenComplete(() {
+        state = const AsyncData(null);
+        if (context.mounted) {
+        context.go('/${SplashView.routePath}');
+      }
+      });
+      
+      
     } catch (e, stackTrace) {
       state = AsyncError(_handleAuthError(e), stackTrace);
+      rethrow;
     }
   }
 

@@ -120,7 +120,7 @@ class RegisterView extends ConsumerWidget {
                   // Register button
                   AuthButton(
                     text: 'Зарегистрироваться',
-                    onPressed: state.isLoading ? null : viewModel.register,
+                    onPressed: state.isLoading ? null : () async => viewModel.register(context),
                     isLoading: state.isLoading,
                   ),
                   const SizedBox(height: 24),

@@ -5,7 +5,7 @@ import 'package:flutter_chat/app/theme/colors.dart';
 import 'package:flutter_chat/app/theme/icons.dart';
 import 'package:flutter_chat/app/theme/text_styles.dart';
 import 'package:flutter_chat/core/auth/service/auth_service.dart';
-import 'package:flutter_chat/core/di/di.dart';
+import 'package:flutter_chat/core/supabase/repository/supabase_repository.dart';
 import 'package:flutter_chat/features/chat/data/models/user.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
@@ -107,9 +107,8 @@ class _CreateChatDialogState extends ConsumerState<CreateChatDialog> {
               : () async {
                   try {
                     // Create a new chat with the selected user
-                    final chatRepository = ref.read(chatRepositoryProvider);
                     
-                        await chatRepository.createChat(_selectedUser!.id);
+                        await SupabaseChatRepository().createChat(_selectedUser!.id);
 
                     // Close dialog and navigate to the new chat
                     if (context.mounted) {

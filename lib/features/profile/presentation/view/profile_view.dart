@@ -123,7 +123,7 @@ class _ProfileViewState extends ConsumerState<ProfileView> {
     });
     
     try {
-      await ref.read(authStateProvider.notifier).signOut();
+      await ref.read(authStateProvider.notifier).signOut(context);
       // Router will handle navigation
     } catch (e) {
       if (mounted) {

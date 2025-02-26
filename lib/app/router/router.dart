@@ -19,80 +19,38 @@ part 'router.g.dart';
 /// Router configuration for the app using GoRouter
 @riverpod
 GoRouter appRouter(Ref ref) {
-  final authState = ref.watch(authStateProvider);
+  final authState = ref.watch(authSessionStreamProvider).asData?.value;
+
   return GoRouter(
     initialLocation: '/${SplashView.routePath}',
     debugLogDiagnostics: true,
-    navigatorKey: ref.read(routerKeyProvider),
+    navigatorKey: ref.watch(routerKeyProvider),
     observers: [
       MyNavigatorObserver(),
     ],
     // Global redirect based on authentication state
-   redirect: (context, state) {
-  // Для отладки
-  log('Current route: ${state.uri.path}, Auth state: ${authState.toString()}');
+    redirect: (context, state) {
+      final currentPath = state.uri.path;
 
-  // Текущий путь и проверки аутентификации
-  final currentPath = state.uri.path;
-  final isAuthScreen = currentPath == '/${LoginView.routePath}' ||
-      currentPath == '/${RegisterView.routePath}';
-  final isSplashScreen = currentPath == '/${SplashView.routePath}';
+      final isAuthScreen = currentPath == '/${LoginView.routePath}' ||
+          currentPath == '/${RegisterView.routePath}';
 
-  // Если состояние аутентификации находится в состоянии загрузки
-  if (authState.isLoading) {
-    // Если мы не на экране сплеша, перенаправляем на сплеш
-    return isSplashScreen ? null : '/${SplashView.routePath}';
-  }
+      // Если не аутентифицирован, пускаем только на экраны входа/регистрации
+      if (authState == null) {
+        return isAuthScreen ? null : '/${LoginView.routePath}';
+      }
 
-  // Если мы на сплеш-экране после загрузки
-  if (isSplashScreen) {
-    // Перенаправляем в зависимости от наличия пользователя
-    return authState.valueOrNull != null ? '/' : '/${LoginView.routePath}';
-  }
+      // Если аутентифицирован и пытается попасть на экран входа/регистрации
+      if (isAuthScreen) {
+        return '/';
+      }
 
-  // Если не аутентифицирован, пускаем только на экраны входа/регистрации
-  if (authState.valueOrNull == null) {
-    return isAuthScreen ? null : '/${LoginView.routePath}';
-  }
-
-  // Если аутентифицирован и пытается попасть на экран входа/регистрации
-  if (authState.valueOrNull != null && isAuthScreen) {
-    return '/';
-  }
-
-  // Никаких перенаправлений
-  return null;
-},
+      // Никаких перенаправлений
+      return null;
+    },
 
     // Error handling
-    errorBuilder: (context, state) => Scaffold(
-      body: Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            const Icon(
-              Icomoon.error,
-              color: Colors.red,
-              size: 48,
-            ),
-            const SizedBox(height: 16),
-            Text(
-              'Страница не найдена: ${state.uri.path}',
-              style: const TextStyle(
-                fontSize: 16,
-                fontWeight: FontWeight.bold,
-              ),
-              textAlign: TextAlign.center,
-            ),
-            const SizedBox(height: 16),
-            ElevatedButton(
-              onPressed: () => GoRouter.of(context).go('/'),
-              child: const Text('Вернуться на главную'),
-            ),
-          ],
-        ),
-      ),
-    ),
+    errorBuilder: (context, state) => ErrorView(state),
 
     // Define routes
     routes: [
@@ -153,7 +111,7 @@ class AppNavigator {
   void goToHome() => _router.go('/');
 
   /// Navigate to login screen
-  void goToLogin() => _router.go('/${LoginView.routePath}');
+  void goToLogin() => _router.pushReplacement('/${LoginView.routePath}');
 
   /// Navigate to register screen
   void goToRegister() => _router.go('/${RegisterView.routePath}');
@@ -195,4 +153,38 @@ class MyNavigatorObserver extends NavigatorObserver {
     super.didReplace(newRoute: newRoute, oldRoute: oldRoute);
     log('Replaced route: ${newRoute?.settings.name}');
   }
+}
+
+class ErrorView extends StatelessWidget {
+  const ErrorView(this.state, {super.key});
+  final GoRouterState state;
+  @override
+  Widget build(BuildContext context) => Scaffold(
+        body: Center(
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              const Icon(
+                Icomoon.error,
+                color: Colors.red,
+                size: 48,
+              ),
+              const SizedBox(height: 16),
+              Text(
+                'Страница не найдена: ${state.uri.path}',
+                style: const TextStyle(
+                  fontSize: 16,
+                  fontWeight: FontWeight.bold,
+                ),
+                textAlign: TextAlign.center,
+              ),
+              const SizedBox(height: 16),
+              ElevatedButton(
+                onPressed: () => GoRouter.of(context).go('/'),
+                child: const Text('Вернуться на главную'),
+              ),
+            ],
+          ),
+        ),
+      );
 }

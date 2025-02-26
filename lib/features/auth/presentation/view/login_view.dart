@@ -80,7 +80,7 @@ class LoginView extends ConsumerWidget {
                   // Login button
                   AuthButton(
                     text: 'Войти',
-                    onPressed: state.isLoading ? null : viewModel.login,
+                    onPressed: state.isLoading ? null : () async => viewModel.login(context),
                     isLoading: state.isLoading,
                   ),
                   const SizedBox(height: 24),
