@@ -509,3 +509,99 @@ The code is now more extensible without requiring changes to existing components
 4. **Separation of concerns**: UI and logic are properly decoupled
 5. **Type safety**: Better typing for state management
 6. **State management**: More predictable state transitions
+
+# Register Screen MVVM Refactoring
+
+This refactoring transforms the register screen to follow MVVM architecture and clean code principles. Here's what was changed:
+
+## 1. Key Changes
+
+### Separated the UI from Business Logic
+- Transformed `RegisterView` from a `ConsumerStatefulWidget` to a simpler `ConsumerWidget`
+- Moved all state management and business logic to a dedicated `RegisterViewModel`
+- Created an immutable `RegisterState` class for predictable state transitions
+
+### Utilized Validators Utility
+- Reused the same centralized `Validators` utility for form field validation
+- Eliminated duplicated validation logic across screens
+
+### Refactored UI Components
+- Extracted complex or repeated UI elements into smaller methods
+- Used the same reusable auth widgets already created for login
+
+## 2. MVVM Implementation
+
+### Model
+The `RegisterState` class holds all UI state:
+```dart
+class RegisterState {
+  final bool isLoading;
+  final bool isPasswordVisible;
+  final bool isConfirmPasswordVisible;
+  final String? errorMessage;
+  
+  // Constructor and copyWith method...
+}
+```
+
+### ViewModel
+The `RegisterViewModel` handles all business logic:
+```dart
+@riverpod
+class RegisterViewModel extends _$RegisterViewModel {
+  // Form controllers and validation logic
+  
+  @override
+  RegisterState build() {
+    // Initialize state and manage resources
+  }
+  
+  // UI-related methods
+  void togglePasswordVisibility() { ... }
+  void toggleConfirmPasswordVisibility() { ... }
+  
+  // Business logic
+  Future<void> register() { ... }
+  void resetError() { ... }
+}
+```
+
+### View
+The `RegisterView` is now a stateless widget that:
+- Renders UI based on the current state
+- Delegates all logic to the ViewModel
+- No longer manages any internal state
+
+## 3. Benefits of this Refactoring
+
+### Improved Testability
+- Business logic can now be tested independently of UI
+- Easy to mock dependencies for unit tests
+- UI can be tested with dummy view models
+
+### Better Separation of Concerns
+- **View**: Only handles UI rendering 
+- **ViewModel**: Contains business logic and state transitions
+- **State**: Represents the current UI state immutably
+
+### Enhanced Maintainability
+- Clear, predictable state transitions
+- No scattered state across a stateful widget
+- Centralized error handling
+- Reuse of existing validation and UI component code
+
+### Code Consistency
+- Registration and login screens now follow the same architectural pattern
+- Common validation logic is shared between screens
+- Same UI components and error handling approaches
+
+## 4. Specific Improvements
+
+1. **State Management**: State is now managed in an immutable object with a predictable interface
+2. **Form Handling**: Form submission logic is cleanly separated from UI
+3. **Error Handling**: Error states are properly managed and displayed
+4. **Resource Management**: Controllers are properly disposed when no longer needed
+5. **Code Organization**: Smaller, more focused methods with clear responsibilities
+6. **Reusability**: Shared validators and UI components reduce duplication
+
+This refactoring aligns the register screen with modern architectural best practices while making the code more maintainable and testable.
