@@ -1,4 +1,3 @@
-// lib/presentation/chat_list/view/chat_list_screen.dart
 import 'package:flutter/material.dart';
 import 'package:flutter_chat/app/theme/colors.dart';
 import 'package:flutter_chat/app/theme/text_styles.dart';

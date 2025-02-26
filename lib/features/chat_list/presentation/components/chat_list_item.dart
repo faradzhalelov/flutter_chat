@@ -1,4 +1,3 @@
-// lib/presentation/chat_list/components/chat_list_item.dart
 import 'package:flutter/material.dart';
 import 'package:flutter_chat/app/theme/colors.dart';
 import 'package:flutter_chat/core/utils/extentions/date_extensions.dart';

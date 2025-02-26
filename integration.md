@@ -193,3 +193,214 @@ void main() async {
 4. Set up proper RLS policies for all tables
 5. Configure storage bucket permissions appropriately
 6. Add monitoring and analytics
+
+
+# Authentication Implementation Guide
+
+This guide explains how authentication is implemented in the Flutter messenger app using Supabase, Riverpod, and GoRouter.
+
+## Overview
+
+The authentication system in this app uses:
+
+- **Supabase Auth**: For user registration, login, and session management
+- **Riverpod**: For state management with generated providers
+- **GoRouter**: For route handling and redirects based on auth state
+
+## Key Components
+
+### 1. Auth State Provider
+
+The `authStateProvider` is the central piece of the authentication system. It:
+
+- Listens to authentication state changes
+- Provides methods for sign in, sign up, and sign out
+- Stores the current user information
+
+```dart
+@riverpod
+class AuthState extends _$AuthState {
+  @override
+  AsyncValue<User?> build() {
+    // ... implementation
+  }
+  
+  Future<void> signIn({required String email, required String password}) async {
+    // ... implementation
+  }
+  
+  Future<void> signUp({required String email, required String password, required String username}) async {
+    // ... implementation
+  }
+  
+  Future<void> signOut() async {
+    // ... implementation
+  }
+}
+```
+
+### 2. User Profile Provider
+
+The `userProfileProvider` fetches the user's profile data from Supabase:
+
+```dart
+@riverpod
+Future<Map<String, dynamic>> userProfile(UserProfileRef ref) async {
+  // ... implementation
+}
+```
+
+### 3. Auth-Aware Router
+
+The router automatically redirects users based on their authentication state:
+
+- Unauthenticated users are redirected to login
+- Authenticated users are redirected away from auth screens
+- Special handling for the splash screen
+
+```dart
+@riverpod
+GoRouter appRouter(AppRouterRef ref) {
+  final authState = ref.watch(authStateProvider);
+  
+  return GoRouter(
+    // ... implementation with redirects
+  );
+}
+```
+
+### 4. Auth Screens
+
+The app includes several authentication-related screens:
+
+- **SplashScreen**: Initial loading screen
+- **LoginScreen**: User login form
+- **RegisterScreen**: User registration form
+- **ProfileScreen**: User profile management
+
+## Auth Flow
+
+1. **App Start**:
+   - App shows splash screen
+   - Auth state is checked
+
+2. **User Not Authenticated**:
+   - Router redirects to login screen
+   - User can choose to login or register
+
+3. **User Authenticated**:
+   - Router redirects to home (chat list) screen
+   - User can access protected routes
+
+4. **Sign Out**:
+   - User profile is cleared
+   - Router redirects to login screen
+
+## Form Validation
+
+All authentication forms include validation for:
+
+- Email format
+- Password length (minimum 6 characters)
+- Username length (minimum 3 characters)
+- Password confirmation matching
+
+## UI Components
+
+The authentication UI uses reusable components:
+
+- **AuthTextField**: Styled text input for auth forms
+- **AuthButton**: Styled button with loading state
+- **AuthHeader**: App logo and title for auth screens
+- **SocialButton**: Button for social authentication (optional)
+- **OrDivider**: Visual separator for auth options
+
+## Avatar Handling
+
+User profile avatars are:
+
+1. Picked from the gallery
+2. Uploaded to Supabase storage
+3. URL stored in the user's profile
+
+## How to Use
+
+### Sign In
+
+```dart
+try {
+  await ref.read(authStateProvider.notifier).signIn(
+    email: 'user@example.com',
+    password: 'password123',
+  );
+  // Success - router will redirect
+} catch (e) {
+  // Handle error
+}
+```
+
+### Sign Up
+
+```dart
+try {
+  await ref.read(authStateProvider.notifier).signUp(
+    email: 'user@example.com',
+    password: 'password123',
+    username: 'username',
+  );
+  // Success - router will redirect
+} catch (e) {
+  // Handle error
+}
+```
+
+### Sign Out
+
+```dart
+try {
+  await ref.read(authStateProvider.notifier).signOut();
+  // Success - router will redirect
+} catch (e) {
+  // Handle error
+}
+```
+
+### Access Current User
+
+```dart
+final user = ref.watch(currentUserProvider);
+if (user != null) {
+  // User is authenticated
+  print(user.id);
+  print(user.email);
+}
+```
+
+### Access User Profile
+
+```dart
+final userProfileAsync = ref.watch(userProfileProvider);
+userProfileAsync.when(
+  data: (profile) {
+    // Use profile data
+    print(profile['username']);
+    print(profile['avatar_url']);
+  },
+  loading: () => CircularProgressIndicator(),
+  error: (e, _) => Text('Error: $e'),
+);
+```
+
+## Security Considerations
+
+- Passwords are never stored locally
+- Auth tokens are automatically handled by Supabase
+- Session persistence is managed securely
+- Database access is protected by Row Level Security (RLS) policies
+
+## Future Enhancements
+
+- Social login integration
+- Two-factor authentication
+- Email verification
+- Password recovery flow
