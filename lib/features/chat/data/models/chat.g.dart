@@ -8,7 +8,7 @@ part of 'chat.dart';
 
 _$ChatModelImpl _$$ChatModelImplFromJson(Map<String, dynamic> json) =>
     _$ChatModelImpl(
-      id: (json['id'] as num).toInt(),
+      id: json['id'] as String,
       user: UserModel.fromJson(json['user'] as Map<String, dynamic>),
       createdAt: DateTime.parse(json['createdAt'] as String),
       lastMessageTime: json['lastMessageTime'] == null

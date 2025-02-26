@@ -25,5 +25,3 @@
 ### Figma:
     - https://www.figma.com/design/sZlbHjGr8gXuEnsXnbDunV/
 
-### Supabase:
-    

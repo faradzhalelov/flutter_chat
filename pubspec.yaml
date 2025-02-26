@@ -26,7 +26,7 @@ dependencies:
   flutter_localization: ^0.3.1
 
   #supabase
-  supabase: ^2.6.3
+  supabase_flutter: ^2.8.4
 
   #utils
   timeago: ^3.7.0
@@ -34,7 +34,12 @@ dependencies:
   file_picker: ^9.0.1
   path_provider: ^2.1.5
   path: ^1.9.0
-  
+  uuid: ^4.5.1
+  flutter_dotenv: ^5.2.1
+
+  #audio
+  record: ^5.2.1
+  just_audio: ^0.9.46  
 
   #models
   freezed: ^2.5.8
@@ -61,6 +66,9 @@ flutter:
 
   uses-material-design: true
   generate: true
+
+  assets:
+    - assets/supabase/.env
 
   fonts:
     - family: icomoon

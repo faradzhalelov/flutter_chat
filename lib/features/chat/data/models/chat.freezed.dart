@@ -20,8 +20,9 @@ ChatModel _$ChatModelFromJson(Map<String, dynamic> json) {
 
 /// @nodoc
 mixin _$ChatModel {
-  int get id => throw _privateConstructorUsedError;
-  UserModel get user => throw _privateConstructorUsedError;
+  String get id => throw _privateConstructorUsedError;
+  UserModel get user =>
+      throw _privateConstructorUsedError; // The other user in the chat
   DateTime get createdAt => throw _privateConstructorUsedError;
   DateTime? get lastMessageTime => throw _privateConstructorUsedError;
   MessageModel? get lastMessage => throw _privateConstructorUsedError;
@@ -42,7 +43,7 @@ abstract class $ChatModelCopyWith<$Res> {
       _$ChatModelCopyWithImpl<$Res, ChatModel>;
   @useResult
   $Res call(
-      {int id,
+      {String id,
       UserModel user,
       DateTime createdAt,
       DateTime? lastMessageTime,
@@ -77,7 +78,7 @@ class _$ChatModelCopyWithImpl<$Res, $Val extends ChatModel>
       id: null == id
           ? _value.id
           : id // ignore: cast_nullable_to_non_nullable
-              as int,
+              as String,
       user: null == user
           ? _value.user
           : user // ignore: cast_nullable_to_non_nullable
@@ -131,7 +132,7 @@ abstract class _$$ChatModelImplCopyWith<$Res>
   @override
   @useResult
   $Res call(
-      {int id,
+      {String id,
       UserModel user,
       DateTime createdAt,
       DateTime? lastMessageTime,
@@ -166,7 +167,7 @@ class __$$ChatModelImplCopyWithImpl<$Res>
       id: null == id
           ? _value.id
           : id // ignore: cast_nullable_to_non_nullable
-              as int,
+              as String,
       user: null == user
           ? _value.user
           : user // ignore: cast_nullable_to_non_nullable
@@ -201,9 +202,10 @@ class _$ChatModelImpl implements _ChatModel {
       _$$ChatModelImplFromJson(json);
 
   @override
-  final int id;
+  final String id;
   @override
   final UserModel user;
+// The other user in the chat
   @override
   final DateTime createdAt;
   @override
@@ -254,7 +256,7 @@ class _$ChatModelImpl implements _ChatModel {
 
 abstract class _ChatModel implements ChatModel {
   const factory _ChatModel(
-      {required final int id,
+      {required final String id,
       required final UserModel user,
       required final DateTime createdAt,
       final DateTime? lastMessageTime,
@@ -264,9 +266,9 @@ abstract class _ChatModel implements ChatModel {
       _$ChatModelImpl.fromJson;
 
   @override
-  int get id;
+  String get id;
   @override
-  UserModel get user;
+  UserModel get user; // The other user in the chat
   @override
   DateTime get createdAt;
   @override
