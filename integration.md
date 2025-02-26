@@ -404,3 +404,108 @@ userProfileAsync.when(
 - Two-factor authentication
 - Email verification
 - Password recovery flow
+
+# Login Screen MVVM Refactoring
+
+This refactoring transforms the login screen to follow MVVM architecture and clean code principles. Here's what was changed:
+
+## 1. Separation of Concerns
+
+### Before
+The original `LoginView` mixed UI, state management, validation, and business logic in a single class.
+
+### After
+- **Model**: Data structures in `LoginState`
+- **View**: UI-only code in `LoginView`
+- **ViewModel**: Business logic in `LoginViewModel`
+
+## 2. Key MVVM Components
+
+### ViewModel (`LoginViewModel`)
+- Manages state with immutable `LoginState` class
+- Handles business logic (login, password reset)
+- Exposes UI-related methods (toggle password visibility)
+- Uses Riverpod's code generation for easy provider creation
+
+```dart
+@riverpod
+class LoginViewModel extends _$LoginViewModel {
+  @override
+  LoginState build() {
+    // Initialize state
+  }
+  
+  void togglePasswordVisibility() { /* ... */ }
+  Future<void> login() { /* ... */ }
+  // Other methods...
+}
+```
+
+### State Management
+- Immutable state object using the value object pattern
+- All state changes go through the ViewModel
+- Clear state transitions with `copyWith` pattern
+
+```dart
+class LoginState {
+  final bool isLoading;
+  final bool isPasswordVisible;
+  // Other state properties...
+  
+  const LoginState({ /* ... */ });
+  
+  LoginState copyWith({ /* ... */ }) {
+    return LoginState( /* ... */ );
+  }
+}
+```
+
+### View (`LoginView`)
+- Changed from `ConsumerStatefulWidget` to `ConsumerWidget`
+- Focuses solely on rendering UI based on state
+- Delegates all logic to the ViewModel
+- Extracts reusable UI components
+
+## 3. Code Organization Improvements
+
+### Extracted Validators
+- Moved validation logic to a dedicated `Validators` utility class
+- Made validators reusable across different screens
+
+### Extracted UI Components
+- Refactored dialog into separate `ForgotPasswordDialog` widget
+- Improved and enhanced reusable auth widgets
+
+### Extracted Helper Methods
+- Created focused methods for specific UI sections
+- Improved readability with clear method naming
+
+## 4. Error Handling
+
+- Centralized error handling in the ViewModel
+- Added dedicated error state properties
+- Created snackbar helper method for consistent error display
+
+## 5. Clean Code Principles Applied
+
+### Single Responsibility Principle
+Each class now has a clear, singular responsibility:
+- `LoginView`: Rendering UI
+- `LoginViewModel`: Business logic and state management
+- `Validators`: Form validation rules
+- `AuthWidgets`: Reusable UI components
+
+### Dependency Inversion
+View depends on abstractions (state and ViewModel interface) rather than concrete implementations.
+
+### Open/Closed Principle
+The code is now more extensible without requiring changes to existing components.
+
+## 6. Benefits of the Refactoring
+
+1. **Testability**: Logic is now easily testable in isolation
+2. **Maintainability**: Clearer code organization makes future changes easier
+3. **Reusability**: Extracted components can be reused throughout the app
+4. **Separation of concerns**: UI and logic are properly decoupled
+5. **Type safety**: Better typing for state management
+6. **State management**: More predictable state transitions
