@@ -63,7 +63,7 @@ final userProfileProvider =
 @Deprecated('Will be removed in 3.0. Use Ref instead')
 // ignore: unused_element
 typedef UserProfileRef = AutoDisposeFutureProviderRef<Map<String, dynamic>>;
-String _$authStateHash() => r'13ad81774eda87fe23653ed3df429a4e9a89cb3c';
+String _$authStateHash() => r'699b9b1a7efef5014999fbf4403a13eb8755a5ef';
 
 /// Provider for auth state to manage authentication
 ///

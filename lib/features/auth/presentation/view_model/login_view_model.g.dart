@@ -6,7 +6,7 @@ part of 'login_view_model.dart';
 // RiverpodGenerator
 // **************************************************************************
 
-String _$loginViewModelHash() => r'75582f9826abd8a1a75c2b80df84f8f992f8bf2c';
+String _$loginViewModelHash() => r'8620f7403bb64d1684dc8363c089ea4289048606';
 
 /// ViewModel for the Login screen following MVVM architecture
 ///

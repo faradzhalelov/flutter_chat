@@ -24,6 +24,7 @@ mixin _$UserModel {
   String get email => throw _privateConstructorUsedError;
   String get username => throw _privateConstructorUsedError;
   DateTime get createdAt => throw _privateConstructorUsedError;
+  bool get isOnline => throw _privateConstructorUsedError;
   String? get avatarUrl => throw _privateConstructorUsedError;
   DateTime? get lastSeen => throw _privateConstructorUsedError;
 
@@ -47,6 +48,7 @@ abstract class $UserModelCopyWith<$Res> {
       String email,
       String username,
       DateTime createdAt,
+      bool isOnline,
       String? avatarUrl,
       DateTime? lastSeen});
 }
@@ -70,6 +72,7 @@ class _$UserModelCopyWithImpl<$Res, $Val extends UserModel>
     Object? email = null,
     Object? username = null,
     Object? createdAt = null,
+    Object? isOnline = null,
     Object? avatarUrl = freezed,
     Object? lastSeen = freezed,
   }) {
@@ -90,6 +93,10 @@ class _$UserModelCopyWithImpl<$Res, $Val extends UserModel>
           ? _value.createdAt
           : createdAt // ignore: cast_nullable_to_non_nullable
               as DateTime,
+      isOnline: null == isOnline
+          ? _value.isOnline
+          : isOnline // ignore: cast_nullable_to_non_nullable
+              as bool,
       avatarUrl: freezed == avatarUrl
           ? _value.avatarUrl
           : avatarUrl // ignore: cast_nullable_to_non_nullable
@@ -115,6 +122,7 @@ abstract class _$$UserModelImplCopyWith<$Res>
       String email,
       String username,
       DateTime createdAt,
+      bool isOnline,
       String? avatarUrl,
       DateTime? lastSeen});
 }
@@ -136,6 +144,7 @@ class __$$UserModelImplCopyWithImpl<$Res>
     Object? email = null,
     Object? username = null,
     Object? createdAt = null,
+    Object? isOnline = null,
     Object? avatarUrl = freezed,
     Object? lastSeen = freezed,
   }) {
@@ -156,6 +165,10 @@ class __$$UserModelImplCopyWithImpl<$Res>
           ? _value.createdAt
           : createdAt // ignore: cast_nullable_to_non_nullable
               as DateTime,
+      isOnline: null == isOnline
+          ? _value.isOnline
+          : isOnline // ignore: cast_nullable_to_non_nullable
+              as bool,
       avatarUrl: freezed == avatarUrl
           ? _value.avatarUrl
           : avatarUrl // ignore: cast_nullable_to_non_nullable
@@ -176,6 +189,7 @@ class _$UserModelImpl implements _UserModel {
       required this.email,
       required this.username,
       required this.createdAt,
+      this.isOnline = false,
       this.avatarUrl,
       this.lastSeen});
 
@@ -191,13 +205,16 @@ class _$UserModelImpl implements _UserModel {
   @override
   final DateTime createdAt;
   @override
+  @JsonKey()
+  final bool isOnline;
+  @override
   final String? avatarUrl;
   @override
   final DateTime? lastSeen;
 
   @override
   String toString() {
-    return 'UserModel(id: $id, email: $email, username: $username, createdAt: $createdAt, avatarUrl: $avatarUrl, lastSeen: $lastSeen)';
+    return 'UserModel(id: $id, email: $email, username: $username, createdAt: $createdAt, isOnline: $isOnline, avatarUrl: $avatarUrl, lastSeen: $lastSeen)';
   }
 
   @override
@@ -211,6 +228,8 @@ class _$UserModelImpl implements _UserModel {
                 other.username == username) &&
             (identical(other.createdAt, createdAt) ||
                 other.createdAt == createdAt) &&
+            (identical(other.isOnline, isOnline) ||
+                other.isOnline == isOnline) &&
             (identical(other.avatarUrl, avatarUrl) ||
                 other.avatarUrl == avatarUrl) &&
             (identical(other.lastSeen, lastSeen) ||
@@ -219,8 +238,8 @@ class _$UserModelImpl implements _UserModel {
 
   @JsonKey(includeFromJson: false, includeToJson: false)
   @override
-  int get hashCode => Object.hash(
-      runtimeType, id, email, username, createdAt, avatarUrl, lastSeen);
+  int get hashCode => Object.hash(runtimeType, id, email, username, createdAt,
+      isOnline, avatarUrl, lastSeen);
 
   /// Create a copy of UserModel
   /// with the given fields replaced by the non-null parameter values.
@@ -244,6 +263,7 @@ abstract class _UserModel implements UserModel {
       required final String email,
       required final String username,
       required final DateTime createdAt,
+      final bool isOnline,
       final String? avatarUrl,
       final DateTime? lastSeen}) = _$UserModelImpl;
 
@@ -258,6 +278,8 @@ abstract class _UserModel implements UserModel {
   String get username;
   @override
   DateTime get createdAt;
+  @override
+  bool get isOnline;
   @override
   String? get avatarUrl;
   @override

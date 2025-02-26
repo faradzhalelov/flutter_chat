@@ -12,8 +12,10 @@ class UserModel with _$UserModel {
     required String email,
     required String username,
     required DateTime createdAt, 
+    @Default(false) bool isOnline,
     String? avatarUrl,
     DateTime? lastSeen,
+    
   }) = _UserModel;
 
   factory UserModel.fromJson(Map<String, dynamic> json) => _$UserModelFromJson(json);
@@ -26,5 +28,6 @@ class UserModel with _$UserModel {
       avatarUrl: data['avatar_url'] as String?,
       createdAt: DateTime.parse(data['created_at'] as String),
       lastSeen: data['last_seen'] != null ? DateTime.parse(data['last_seen'] as String) : null,
+      isOnline: data['is_online'] as bool? ?? false,
     );
 }

@@ -1,4 +1,6 @@
 // lib/core/router/app_router.dart
+import 'dart:developer';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_chat/core/auth/service/auth_service.dart';
 import 'package:flutter_chat/features/auth/presentation/view/login_view.dart';
@@ -16,45 +18,48 @@ part 'router.g.dart';
 /// Router configuration for the app using GoRouter
 @riverpod
 GoRouter appRouter(Ref ref) {
-
   final authState = ref.watch(authStateProvider);
-  
+  final userNotAuthenticated = authState.asData?.value == null;
+  log('userNotAuthenticated:$userNotAuthenticated');
   return GoRouter(
     initialLocation: '/${SplashView.routePath}',
     debugLogDiagnostics: true,
-    
+    navigatorKey: ref.read(routerKeyProvider),
+    observers: [
+      MyNavigatorObserver(),
+    ],
     // Global redirect based on authentication state
     redirect: (context, state) {
       // Path being accessed
       final currentPath = state.uri.path;
-      
+
       // Check if the path is an auth screen
-      final isAuthScreen = 
-        currentPath == '/${LoginView.routePath}' || 
-        currentPath == '/${RegisterView.routePath}' || 
-        currentPath == '/${SplashView.routePath}';
-      
-      // Check if the auth state is loading
-      if (authState.isLoading) return null;
-      
-      // Check if the user is authenticated
-      final isAuthenticated = authState.valueOrNull != null;
-      
-      // If not authenticated and trying to access non-auth screen, redirect to login
-      if (!isAuthenticated && !isAuthScreen) return '/${LoginView.routePath}';
-      
-      // If authenticated and trying to access auth screen, redirect to home
-      if (isAuthenticated && isAuthScreen && currentPath != '/${SplashView.routePath}') return '/';
-      
-      // If on splash screen, wait for initialization then redirect appropriately
-      if (currentPath == '/${SplashView.routePath}' && !authState.isLoading) {
-        return isAuthenticated ? '/' : '/${LoginView.routePath}';
+      final isAuthScreen = currentPath == '/${LoginView.routePath}' ||
+          currentPath == '/${RegisterView.routePath}';
+
+      if (userNotAuthenticated) {
+        if (isAuthScreen) {
+          return null;
+        }
+        return '/${LoginView.routePath}';
       }
-      
+      // Always allow access to splash screen
+      if (currentPath == '/${SplashView.routePath}') return null;
+
+      // Check if the auth state is loading
+      if (authState.isLoading) return '/${SplashView.routePath}';
+
+      // If authenticated and trying to access auth screen, redirect to home
+      if (!userNotAuthenticated && isAuthScreen) {
+        log('userNotAuthenticated:$userNotAuthenticated and isAuthScreen:$isAuthScreen');
+        log('currentPath:$currentPath');
+        return '/';
+      }
+
       // No redirection needed
       return null;
     },
-    
+
     // Error handling
     errorBuilder: (context, state) => Scaffold(
       body: Center(
@@ -84,15 +89,15 @@ GoRouter appRouter(Ref ref) {
         ),
       ),
     ),
-    
+
     // Define routes
     routes: [
-      // Splash screen route
+      // Splash screen route - always accessible
       GoRoute(
         path: '/${SplashView.routePath}',
         builder: (context, state) => const SplashView(),
       ),
-      
+
       // Authentication routes
       GoRoute(
         path: '/${LoginView.routePath}',
@@ -102,7 +107,7 @@ GoRouter appRouter(Ref ref) {
         path: '/${RegisterView.routePath}',
         builder: (context, state) => const RegisterView(),
       ),
-      
+
       // Main app routes
       GoRoute(
         path: '/',
@@ -133,29 +138,57 @@ AppNavigator appNavigator(Ref ref) => AppNavigator(ref);
 
 /// Helper class for navigation from anywhere in the app
 class AppNavigator {
-  
   AppNavigator(this._ref);
-  
+
   final Ref _ref;
-  
+
   /// Get the GoRouter instance
   GoRouter get _router => _ref.read(appRouterProvider);
-  
+
   /// Navigate to home screen
   void goToHome() => _router.go('/');
-  
+
   /// Navigate to login screen
   void goToLogin() => _router.go('/${LoginView.routePath}');
-  
+
   /// Navigate to register screen
   void goToRegister() => _router.go('/${RegisterView.routePath}');
-  
+
   /// Navigate to chat screen
   void goToChat(String chatId) => _router.go('/${ChatView.routePath}/$chatId');
-  
+
   /// Navigate to profile screen
   void goToProfile() => _router.go('/${ProfileView.routePath}');
-  
+
+  /// Navigate to splash screen
+  void goToSplash() => _router.go('/${SplashView.routePath}');
+
   /// Go back to previous screen
   void goBack() => _router.pop();
+}
+
+class MyNavigatorObserver extends NavigatorObserver {
+  @override
+  void didPush(Route<dynamic> route, Route<dynamic>? previousRoute) {
+    super.didPush(route, previousRoute);
+    log('Pushed route: ${route.settings.name}');
+  }
+
+  @override
+  void didPop(Route<dynamic> route, Route<dynamic>? previousRoute) {
+    super.didPop(route, previousRoute);
+    log('Popped route: ${route.settings.name}');
+  }
+
+  @override
+  void didRemove(Route<dynamic> route, Route<dynamic>? previousRoute) {
+    super.didRemove(route, previousRoute);
+    log('Removed route: ${route.settings.name}');
+  }
+
+  @override
+  void didReplace({Route<dynamic>? newRoute, Route<dynamic>? oldRoute}) {
+    super.didReplace(newRoute: newRoute, oldRoute: oldRoute);
+    log('Replaced route: ${newRoute?.settings.name}');
+  }
 }

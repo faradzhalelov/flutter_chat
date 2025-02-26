@@ -5,14 +5,18 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 class SplashView extends ConsumerWidget {
   const SplashView({super.key});
-    static const String routePath = 'splash';
-
+  static const String routePath = 'splash';
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    // The router will automatically redirect based on auth state
-    // after 2 seconds when authStateProvider is built
-    ref.listen(authStateProvider, (_, __) {});
+    // Listen to auth state changes
+    ref.listen(authStateProvider, (previous, current) {
+      // The router will handle redirects based on auth state
+      // This listener is important to ensure the provider is watched
+    });
+    
+    // Deliberately not starting a timer or redirect here
+    // The router will handle redirects after auth state is determined
     
     return Scaffold(
       backgroundColor: AppColors.headerBackground,
@@ -64,7 +68,7 @@ class SplashView extends ConsumerWidget {
             ),
             const SizedBox(height: 48),
             
-            // Loading indicator
+            // Always show loading indicator
             const CircularProgressIndicator(
               valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
             ),

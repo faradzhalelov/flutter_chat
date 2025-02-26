@@ -1,4 +1,6 @@
 // lib/features/auth/presentation/viewmodel/login_viewmodel.dart
+import 'dart:developer';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_chat/core/auth/service/auth_service.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
@@ -11,45 +13,46 @@ class LoginViewModel extends _$LoginViewModel {
   final formKey = GlobalKey<FormState>();
   final emailController = TextEditingController();
   final passwordController = TextEditingController();
-  
+
   @override
   LoginState build() {
     ref.onDispose(() {
       emailController.dispose();
       passwordController.dispose();
     });
-    
+
     return const LoginState();
   }
-  
+
   /// Toggles password visibility
   void togglePasswordVisibility() {
     state = state.copyWith(isPasswordVisible: !state.isPasswordVisible);
   }
-  
+
   /// Handles the login process
   Future<void> login() async {
     // Validate form
     if (!formKey.currentState!.validate()) {
       return;
     }
-    
+
     // Set loading state
     state = state.copyWith(isLoading: true);
-    
+
     try {
       // Get form values
       final email = emailController.text.trim();
       final password = passwordController.text;
-      
+
       // Attempt to sign in
       await ref.read(authStateProvider.notifier).signIn(
-        email: email,
-        password: password,
-      );
-      
+            email: email,
+            password: password,
+          );
+
       // No need to navigate, the router will handle it
     } catch (e) {
+      log('login error:$e');
       // Set error state
       state = state.copyWith(
         isLoading: false,
@@ -57,18 +60,18 @@ class LoginViewModel extends _$LoginViewModel {
       );
     }
   }
-  
+
   /// Resets the error message
   void resetError() {
     if (state.errorMessage != null) {
       state = state.copyWith(errorMessage: null);
     }
   }
-  
+
   /// Initiates password reset process
   Future<void> resetPassword(String email) async {
     state = state.copyWith(isPasswordResetLoading: true);
-    
+
     try {
       await ref.read(authStateProvider.notifier).resetPassword(email);
       state = state.copyWith(
@@ -82,7 +85,7 @@ class LoginViewModel extends _$LoginViewModel {
       );
     }
   }
-  
+
   /// Clears password reset status
   void clearPasswordResetStatus() {
     state = state.copyWith(
@@ -94,7 +97,6 @@ class LoginViewModel extends _$LoginViewModel {
 
 /// Immutable state class for LoginViewModel
 class LoginState {
-  
   const LoginState({
     this.isLoading = false,
     this.isPasswordVisible = false,
@@ -109,7 +111,7 @@ class LoginState {
   final bool isPasswordResetLoading;
   final bool passwordResetSuccess;
   final String? passwordResetError;
-  
+
   LoginState copyWith({
     bool? isLoading,
     bool? isPasswordVisible,
@@ -117,12 +119,14 @@ class LoginState {
     bool? isPasswordResetLoading,
     bool? passwordResetSuccess,
     String? passwordResetError,
-  }) => LoginState(
-      isLoading: isLoading ?? this.isLoading,
-      isPasswordVisible: isPasswordVisible ?? this.isPasswordVisible,
-      errorMessage: errorMessage,
-      isPasswordResetLoading: isPasswordResetLoading ?? this.isPasswordResetLoading,
-      passwordResetSuccess: passwordResetSuccess ?? this.passwordResetSuccess,
-      passwordResetError: passwordResetError,
-    );
+  }) =>
+      LoginState(
+        isLoading: isLoading ?? this.isLoading,
+        isPasswordVisible: isPasswordVisible ?? this.isPasswordVisible,
+        errorMessage: errorMessage,
+        isPasswordResetLoading:
+            isPasswordResetLoading ?? this.isPasswordResetLoading,
+        passwordResetSuccess: passwordResetSuccess ?? this.passwordResetSuccess,
+        passwordResetError: passwordResetError,
+      );
 }

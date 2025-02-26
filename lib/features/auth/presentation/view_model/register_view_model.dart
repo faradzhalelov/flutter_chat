@@ -1,4 +1,6 @@
 // lib/features/auth/presentation/viewmodel/register_viewmodel.dart
+import 'dart:developer';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_chat/core/auth/service/auth_service.dart';
 import 'package:flutter_chat/core/utils/validators/validators.dart';
@@ -14,7 +16,7 @@ class RegisterViewModel extends _$RegisterViewModel {
   final emailController = TextEditingController();
   final passwordController = TextEditingController();
   final confirmPasswordController = TextEditingController();
-  
+
   @override
   RegisterState build() {
     ref.onDispose(() {
@@ -23,48 +25,51 @@ class RegisterViewModel extends _$RegisterViewModel {
       passwordController.dispose();
       confirmPasswordController.dispose();
     });
-    
+
     return const RegisterState();
   }
-  
+
   /// Toggles password visibility
   void togglePasswordVisibility() {
     state = state.copyWith(isPasswordVisible: !state.isPasswordVisible);
   }
-  
+
   /// Toggles confirm password visibility
   void toggleConfirmPasswordVisibility() {
-    state = state.copyWith(isConfirmPasswordVisible: !state.isConfirmPasswordVisible);
+    state = state.copyWith(
+        isConfirmPasswordVisible: !state.isConfirmPasswordVisible);
   }
-  
+
   /// Validates confirm password field
-  String? validateConfirmPassword(String? value) => Validators.validatePasswordConfirmation(value, passwordController.text);
-  
+  String? validateConfirmPassword(String? value) =>
+      Validators.validatePasswordConfirmation(value, passwordController.text);
+
   /// Handles the registration process
   Future<void> register() async {
     // Validate form
     if (!formKey.currentState!.validate()) {
       return;
     }
-    
+
     // Set loading state
     state = state.copyWith(isLoading: true);
-    
+
     try {
       // Get form values
       final username = usernameController.text.trim();
       final email = emailController.text.trim();
       final password = passwordController.text;
-      
+
       // Attempt to sign up
       await ref.read(authStateProvider.notifier).signUp(
-        email: email,
-        password: password,
-        username: username,
-      );
-      
+            email: email,
+            password: password,
+            username: username,
+          );
+
       // No need to navigate, the router will handle it
     } catch (e) {
+      log('register error: $e');
       // Set error state
       state = state.copyWith(
         isLoading: false,
@@ -72,7 +77,7 @@ class RegisterViewModel extends _$RegisterViewModel {
       );
     }
   }
-  
+
   /// Resets the error message
   void resetError() {
     if (state.errorMessage != null) {
@@ -83,7 +88,6 @@ class RegisterViewModel extends _$RegisterViewModel {
 
 /// Immutable state class for RegisterViewModel
 class RegisterState {
-  
   const RegisterState({
     this.isLoading = false,
     this.isPasswordVisible = false,
@@ -94,16 +98,18 @@ class RegisterState {
   final bool isPasswordVisible;
   final bool isConfirmPasswordVisible;
   final String? errorMessage;
-  
+
   RegisterState copyWith({
     bool? isLoading,
     bool? isPasswordVisible,
     bool? isConfirmPasswordVisible,
     String? errorMessage,
-  }) => RegisterState(
-      isLoading: isLoading ?? this.isLoading,
-      isPasswordVisible: isPasswordVisible ?? this.isPasswordVisible,
-      isConfirmPasswordVisible: isConfirmPasswordVisible ?? this.isConfirmPasswordVisible,
-      errorMessage: errorMessage,
-    );
+  }) =>
+      RegisterState(
+        isLoading: isLoading ?? this.isLoading,
+        isPasswordVisible: isPasswordVisible ?? this.isPasswordVisible,
+        isConfirmPasswordVisible:
+            isConfirmPasswordVisible ?? this.isConfirmPasswordVisible,
+        errorMessage: errorMessage,
+      );
 }
