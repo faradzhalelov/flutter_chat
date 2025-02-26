@@ -1,5 +1,6 @@
 // lib/features/auth/presentation/view/components/forgot_password_dialog.dart
 import 'package:flutter/material.dart';
+import 'package:flutter_chat/app/theme/icons.dart';
 import 'package:flutter_chat/core/utils/typedef/typedef.dart';
 import 'package:flutter_chat/core/utils/validators/validators.dart';
 import 'package:flutter_chat/features/auth/presentation/view/components/auth_widgets.dart';
@@ -83,7 +84,7 @@ class _ForgotPasswordDialogState extends ConsumerState<ForgotPasswordDialog> {
               controller: emailController,
               labelText: 'Email',
               hintText: 'Введите ваш email',
-              prefixIcon: Icons.email_outlined,
+              prefixIcon: Icomoon.mail,
               keyboardType: TextInputType.emailAddress,
               validator: Validators.validateEmail,
               enabled: !state.isPasswordResetLoading,

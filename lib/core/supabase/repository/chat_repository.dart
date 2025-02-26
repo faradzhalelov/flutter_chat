@@ -9,7 +9,7 @@ import 'package:flutter_chat/features/chat/data/models/user.dart';
 /// Abstract chat repository defining all operations required for the chat functionality
 abstract class ChatRepository {
   /// Gets all chats for the current authenticated user
-  Future<List<ChatModel>> getChatsForCurrentUser();
+  Stream<List<ChatModel>> getChatsForCurrentUserStream();
   
   /// Gets all messages for a specific chat
   Future<List<MessageModel>> getMessagesForChat(String chatId);

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_chat/app/theme/colors.dart';
+import 'package:flutter_chat/app/theme/icons.dart';
 import 'package:flutter_chat/core/auth/service/auth_service.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
@@ -40,7 +41,7 @@ class SplashView extends ConsumerWidget {
                 ],
               ),
               child: const Icon(
-                Icons.chat_bubble_rounded,
+                Icomoon.messageFill,
                 color: Colors.white,
                 size: 60,
               ),

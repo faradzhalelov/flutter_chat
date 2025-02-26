@@ -1,6 +1,7 @@
 import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter_chat/app/theme/colors.dart';
+import 'package:flutter_chat/app/theme/icons.dart';
 import 'package:flutter_chat/core/auth/service/auth_service.dart';
 import 'package:flutter_chat/features/auth/presentation/view/components/auth_widgets.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -152,7 +153,7 @@ class _ProfileViewState extends ConsumerState<ProfileView> {
         title: const Text('Профиль'),
         actions: [
           IconButton(
-            icon: const Icon(Icons.logout),
+            icon: const Icon(Icomoon.outRight),
             onPressed: _isLoading ? null : _signOut,
             tooltip: 'Выйти',
           ),

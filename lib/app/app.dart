@@ -3,6 +3,7 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_chat/app/router/router.dart';
+import 'package:flutter_chat/app/theme/icons.dart';
 import 'package:flutter_chat/app/theme/theme.dart';
 import 'package:flutter_chat/core/lifecycle/lifecycle.dart';
 import 'package:flutter_chat/features/auth/presentation/view/auth_wrapper.dart';
@@ -98,7 +99,7 @@ class _ErrorHandlerState extends State<ErrorHandler> {
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
                 const Icon(
-                  Icons.error_outline,
+                  Icomoon.error,
                   color: Colors.red,
                   size: 64,
                 ),

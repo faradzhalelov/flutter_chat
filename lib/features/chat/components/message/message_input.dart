@@ -1,6 +1,7 @@
 // lib/presentation/chat/components/message_input.dart
 import 'package:flutter/material.dart';
 import 'package:flutter_chat/app/theme/colors.dart';
+import 'package:flutter_chat/app/theme/icons.dart';
 import 'package:flutter_chat/features/chat/presentation/view_model/chat_view_model.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
@@ -120,7 +121,7 @@ class _MessageInputState extends ConsumerState<MessageInput> with SingleTickerPr
               mainAxisAlignment: MainAxisAlignment.spaceEvenly,
               children: [
                 _buildAttachmentButton(
-                  icon: Icons.image_outlined,
+                  icon: Icomoon.img,
                   label: 'Фото',
                   onTap: _pickImage,
                 ),
@@ -130,7 +131,7 @@ class _MessageInputState extends ConsumerState<MessageInput> with SingleTickerPr
                   onTap: _pickVideo,
                 ),
                 _buildAttachmentButton(
-                  icon: Icons.insert_drive_file_outlined,
+                  icon: Icomoon.attach,
                   label: 'Файл',
                   onTap: _pickFile,
                 ),
@@ -198,7 +199,7 @@ class _MessageInputState extends ConsumerState<MessageInput> with SingleTickerPr
                   if (_textController.text.isEmpty)
                     IconButton(
                       icon: Icon(
-                        _isRecording ? Icons.stop : Icons.mic_none,
+                        _isRecording ? Icons.stop : Icomoon.audio,
                         color: _isRecording ? Colors.red : Colors.grey.shade600,
                       ),
                       onPressed: isLoading ? null : _toggleRecording,

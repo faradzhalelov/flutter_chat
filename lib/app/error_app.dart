@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter_chat/app/theme/icons.dart';
 
 class ErrorApp extends StatelessWidget {
   const ErrorApp({required this.e, super.key});
@@ -15,7 +16,7 @@ class ErrorApp extends StatelessWidget {
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
                   const Icon(
-                    Icons.error_outline,
+                    Icomoon.error,
                     color: Colors.red,
                     size: 64,
                   ),

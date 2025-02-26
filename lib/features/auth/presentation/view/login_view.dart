@@ -1,6 +1,7 @@
 // lib/features/auth/presentation/view/login_view.dart
 import 'package:flutter/material.dart';
 import 'package:flutter_chat/app/theme/colors.dart';
+import 'package:flutter_chat/app/theme/icons.dart';
 import 'package:flutter_chat/core/utils/validators/validators.dart';
 import 'package:flutter_chat/features/auth/presentation/view/components/auth_widgets.dart';
 import 'package:flutter_chat/features/auth/presentation/view/components/forgot_password_dialog.dart';
@@ -45,7 +46,7 @@ class LoginView extends ConsumerWidget {
                     controller: viewModel.emailController,
                     labelText: 'Email',
                     hintText: 'Введите ваш email',
-                    prefixIcon: Icons.email_outlined,
+                    prefixIcon: Icomoon.mail,
                     keyboardType: TextInputType.emailAddress,
                     validator: Validators.validateEmail,
                     enabled: !state.isLoading,
@@ -62,8 +63,8 @@ class LoginView extends ConsumerWidget {
                     suffixIcon: IconButton(
                       icon: Icon(
                         state.isPasswordVisible
-                            ? Icons.visibility_off_outlined
-                            : Icons.visibility_outlined,
+                            ? Icomoon.notView
+                            : Icomoon.view,
                         color: Colors.grey,
                       ),
                       onPressed: !state.isLoading ? viewModel.togglePasswordVisibility : null,

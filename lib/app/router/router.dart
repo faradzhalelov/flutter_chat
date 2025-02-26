@@ -2,6 +2,7 @@
 import 'dart:developer';
 
 import 'package:flutter/material.dart';
+import 'package:flutter_chat/app/theme/icons.dart';
 import 'package:flutter_chat/core/auth/service/auth_service.dart';
 import 'package:flutter_chat/features/auth/presentation/view/login_view.dart';
 import 'package:flutter_chat/features/auth/presentation/view/register_view.dart';
@@ -19,8 +20,6 @@ part 'router.g.dart';
 @riverpod
 GoRouter appRouter(Ref ref) {
   final authState = ref.watch(authStateProvider);
-  final userNotAuthenticated = authState.asData?.value == null;
-  log('userNotAuthenticated:$userNotAuthenticated');
   return GoRouter(
     initialLocation: '/${SplashView.routePath}',
     debugLogDiagnostics: true,
@@ -29,36 +28,41 @@ GoRouter appRouter(Ref ref) {
       MyNavigatorObserver(),
     ],
     // Global redirect based on authentication state
-    redirect: (context, state) {
-      // Path being accessed
-      final currentPath = state.uri.path;
+   redirect: (context, state) {
+  // Для отладки
+  log('Current route: ${state.uri.path}, Auth state: ${authState.toString()}');
 
-      // Check if the path is an auth screen
-      final isAuthScreen = currentPath == '/${LoginView.routePath}' ||
-          currentPath == '/${RegisterView.routePath}';
+  // Текущий путь и проверки аутентификации
+  final currentPath = state.uri.path;
+  final isAuthScreen = currentPath == '/${LoginView.routePath}' ||
+      currentPath == '/${RegisterView.routePath}';
+  final isSplashScreen = currentPath == '/${SplashView.routePath}';
 
-      if (userNotAuthenticated) {
-        if (isAuthScreen) {
-          return null;
-        }
-        return '/${LoginView.routePath}';
-      }
-      // Always allow access to splash screen
-      if (currentPath == '/${SplashView.routePath}') return null;
+  // Если состояние аутентификации находится в состоянии загрузки
+  if (authState.isLoading) {
+    // Если мы не на экране сплеша, перенаправляем на сплеш
+    return isSplashScreen ? null : '/${SplashView.routePath}';
+  }
 
-      // Check if the auth state is loading
-      if (authState.isLoading) return '/${SplashView.routePath}';
+  // Если мы на сплеш-экране после загрузки
+  if (isSplashScreen) {
+    // Перенаправляем в зависимости от наличия пользователя
+    return authState.valueOrNull != null ? '/' : '/${LoginView.routePath}';
+  }
 
-      // If authenticated and trying to access auth screen, redirect to home
-      if (!userNotAuthenticated && isAuthScreen) {
-        log('userNotAuthenticated:$userNotAuthenticated and isAuthScreen:$isAuthScreen');
-        log('currentPath:$currentPath');
-        return '/';
-      }
+  // Если не аутентифицирован, пускаем только на экраны входа/регистрации
+  if (authState.valueOrNull == null) {
+    return isAuthScreen ? null : '/${LoginView.routePath}';
+  }
 
-      // No redirection needed
-      return null;
-    },
+  // Если аутентифицирован и пытается попасть на экран входа/регистрации
+  if (authState.valueOrNull != null && isAuthScreen) {
+    return '/';
+  }
+
+  // Никаких перенаправлений
+  return null;
+},
 
     // Error handling
     errorBuilder: (context, state) => Scaffold(
@@ -67,7 +71,7 @@ GoRouter appRouter(Ref ref) {
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
             const Icon(
-              Icons.error_outline,
+              Icomoon.error,
               color: Colors.red,
               size: 48,
             ),

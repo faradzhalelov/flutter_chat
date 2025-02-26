@@ -1,6 +1,7 @@
 // lib/features/auth/presentation/view/register_view.dart
 import 'package:flutter/material.dart';
 import 'package:flutter_chat/app/theme/colors.dart';
+import 'package:flutter_chat/app/theme/icons.dart';
 import 'package:flutter_chat/core/utils/validators/validators.dart';
 import 'package:flutter_chat/features/auth/presentation/view/components/auth_widgets.dart';
 import 'package:flutter_chat/features/auth/presentation/view_model/register_view_model.dart';
@@ -26,7 +27,7 @@ class RegisterView extends ConsumerWidget {
         backgroundColor: Colors.transparent,
         elevation: 0,
         leading: IconButton(
-          icon: const Icon(Icons.arrow_back, color: Colors.black),
+          icon: const Icon(Icomoon.arrowLeft, color: Colors.black),
           onPressed: () => context.go('/login'),
         ),
       ),
@@ -52,7 +53,7 @@ class RegisterView extends ConsumerWidget {
                     controller: viewModel.usernameController,
                     labelText: 'Имя пользователя',
                     hintText: 'Введите ваше имя',
-                    prefixIcon: Icons.person_outline,
+                    prefixIcon: Icomoon.person,
                     validator: Validators.validateUsername,
                     enabled: !state.isLoading,
                   ),
@@ -63,7 +64,7 @@ class RegisterView extends ConsumerWidget {
                     controller: viewModel.emailController,
                     labelText: 'Email',
                     hintText: 'Введите ваш email',
-                    prefixIcon: Icons.email_outlined,
+                    prefixIcon: Icomoon.mail,
                     keyboardType: TextInputType.emailAddress,
                     validator: Validators.validateEmail,
                     enabled: !state.isLoading,
@@ -80,8 +81,8 @@ class RegisterView extends ConsumerWidget {
                     suffixIcon: IconButton(
                       icon: Icon(
                         state.isPasswordVisible
-                            ? Icons.visibility_off_outlined
-                            : Icons.visibility_outlined,
+                            ? Icomoon.notView
+                            : Icomoon.view,
                         color: Colors.grey,
                       ),
                       onPressed: !state.isLoading 
@@ -103,8 +104,8 @@ class RegisterView extends ConsumerWidget {
                     suffixIcon: IconButton(
                       icon: Icon(
                         state.isConfirmPasswordVisible
-                            ? Icons.visibility_off_outlined
-                            : Icons.visibility_outlined,
+                            ? Icomoon.notView
+                            : Icomoon.view,
                         color: Colors.grey,
                       ),
                       onPressed: !state.isLoading 

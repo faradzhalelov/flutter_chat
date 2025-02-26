@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_chat/app/theme/colors.dart';
+import 'package:flutter_chat/app/theme/icons.dart';
 import 'package:flutter_chat/app/theme/text_styles.dart';
 import 'package:flutter_chat/core/supabase/repository/supabase_repository.dart';
+import 'package:flutter_chat/features/chat_list/components/create_chat_dialog.dart';
 import 'package:flutter_chat/features/chat_list/presentation/components/chat_list_item.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
@@ -16,18 +18,26 @@ class ChatListView extends ConsumerWidget {
     return Scaffold(
       backgroundColor: Colors.white,
       appBar: AppBar(
-        backgroundColor: AppColors.headerBackground,
+        backgroundColor: AppColors.appBackground,
         title: Text(
           'Чаты',
           style: AppTextStyles.largeTitle.copyWith(
-            color: Colors.white,
-            fontSize: 32,
+            color: AppColors.black,
           ),
         ),
         centerTitle: false,
         elevation: 0,
         toolbarHeight: 60,
       ),
+      floatingActionButton: IconButton(
+            icon: const Icon(
+              Icomoon.plusS, 
+              color: AppColors.black,
+            ),
+            onPressed: () => context.showCreateChatDialog(),
+            tooltip: 'Создать чат',
+          ),
+
       body: Column(
         children: [
           // Search bar
@@ -36,19 +46,20 @@ class ChatListView extends ConsumerWidget {
             child: DecoratedBox(
               decoration: BoxDecoration(
                 color: AppColors.searchBackground,
-                borderRadius: BorderRadius.circular(10),
+                borderRadius: BorderRadius.circular(12),
               ),
               child: TextField(
                 decoration: InputDecoration(
                   hintText: 'Поиск',
                   hintStyle: AppTextStyles.medium.copyWith(
-                    color: Colors.grey.shade400,
+                    color: AppColors.gray,
                   ),
                   prefixIcon: const Icon(
-                    Icons.search,
-                    color: Colors.grey,
+                    Icomoon.searchS,
+                    color: AppColors.gray,
+                  
                   ),
-                  border: InputBorder.none,
+                  
                   contentPadding: const EdgeInsets.symmetric(
                     vertical: 12,
                     horizontal: 8,
@@ -57,7 +68,8 @@ class ChatListView extends ConsumerWidget {
               ),
             ),
           ),
-          
+          const SizedBox(height: 24,),
+          const Divider(color: AppColors.divider,),
           // Chat list
           Expanded(
             child: chatsAsync.when(
@@ -104,7 +116,7 @@ class ChatListView extends ConsumerWidget {
                     mainAxisSize: MainAxisSize.min,
                     children: [
                       const Icon(
-                        Icons.error_outline,
+                        Icomoon.error,
                         color: Colors.red,
                         size: 48,
                       ),

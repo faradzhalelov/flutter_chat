@@ -3,6 +3,7 @@ import 'dart:io';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_chat/app/theme/colors.dart';
+import 'package:flutter_chat/app/theme/icons.dart';
 import 'package:flutter_chat/app/theme/text_styles.dart';
 import 'package:flutter_chat/app/theme/theme.dart';
 import 'package:flutter_chat/features/chat/data/models/atachment_type.dart';
@@ -92,7 +93,7 @@ class MessageBubble extends StatelessWidget {
                   if (isMe) ...[
                     const SizedBox(width: 4),
                     Icon(
-                      message.isRead ? Icons.done_all : Icons.done,
+                      message.isRead ? Icomoon.read : Icomoon.unread,
                       size: 14,
                       color: message.isRead 
                           ? AppColors.messageDelivered 

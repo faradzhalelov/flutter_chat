@@ -1,6 +1,7 @@
 // lib/features/auth/presentation/view/components/auth_widgets.dart
 import 'package:flutter/material.dart';
 import 'package:flutter_chat/app/theme/colors.dart';
+import 'package:flutter_chat/app/theme/icons.dart';
 import 'package:flutter_chat/core/utils/typedef/typedef.dart';
 
 /// A reusable button for authentication screens
@@ -169,7 +170,7 @@ class AuthHeader extends StatelessWidget {
             ],
           ),
           child: const Icon(
-            Icons.chat_bubble_rounded,
+            Icomoon.messageFill,
             color: Colors.white,
             size: 40,
           ),

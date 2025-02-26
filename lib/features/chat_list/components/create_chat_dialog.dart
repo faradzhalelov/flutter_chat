@@ -1,0 +1,145 @@
+import 'dart:developer';
+
+import 'package:flutter/material.dart';
+import 'package:flutter_chat/app/theme/colors.dart';
+import 'package:flutter_chat/app/theme/icons.dart';
+import 'package:flutter_chat/app/theme/text_styles.dart';
+import 'package:flutter_chat/core/auth/service/auth_service.dart';
+import 'package:flutter_chat/core/di/di.dart';
+import 'package:flutter_chat/features/chat/data/models/user.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
+
+// Provider to fetch all users except the current user
+final allUsersProvider = AutoDisposeFutureProvider<List<UserModel>>((ref) async {
+  final currentUser = ref.watch(currentUserProvider);
+  if (currentUser == null) return [];
+
+  try {
+    final response = await Supabase.instance.client
+        .from('users')
+        .select('id, username, email, created_at, last_seen, is_online')
+        .neq('id', currentUser.id);
+    return response
+        .map((userData) => UserModel.fromSupabase(userData))
+        .toList();
+  } catch (e) {
+    log('Error fetching users: $e');
+    return [];
+  }
+});
+
+class CreateChatDialog extends ConsumerStatefulWidget {
+  const CreateChatDialog({super.key});
+
+  @override
+  ConsumerState<CreateChatDialog> createState() => _CreateChatDialogState();
+}
+
+class _CreateChatDialogState extends ConsumerState<CreateChatDialog> {
+  UserModel? _selectedUser;
+
+  @override
+  Widget build(BuildContext context) {
+    final usersAsync = ref.watch(allUsersProvider);
+
+    return AlertDialog(
+      title: Text(
+        'Создать чат',
+        style: AppTextStyles.medium.copyWith(
+          fontWeight: FontWeight.bold,
+        ),
+      ),
+      content: usersAsync.when(
+        data: (users) => SizedBox(
+          width: double.maxFinite,
+          child: ListView.builder(
+            shrinkWrap: true,
+            itemCount: users.length,
+            itemBuilder: (context, index) {
+              final user = users[index];
+              return ListTile(
+                selectedTileColor: AppColors.gray,
+                title: Text(
+                  user.username,
+                  style: AppTextStyles.medium.copyWith(
+                    color: AppColors.black,
+                  ),
+                ),
+                subtitle: Text(user.email),
+                leading: user.avatarUrl != null
+                    ? CircleAvatar(
+                        backgroundImage: NetworkImage(user.avatarUrl!),
+                      )
+                    : const CircleAvatar(
+                        child: Icon(Icomoon.person),
+                      ),
+                selected: _selectedUser?.id == user.id,
+                onTap: () {
+                  setState(() {
+                    _selectedUser = user;
+                  });
+                },
+              );
+            },
+          ),
+        ),
+        loading: () => const SizedBox(
+            width: 50,
+            height: 50,
+            child: Center(child: CircularProgressIndicator())),
+        error: (error, _) => Center(
+          child: Text(
+            'Ошибка загрузки пользователей: $error',
+            style: const TextStyle(color: Colors.red),
+          ),
+        ),
+      ),
+      actions: [
+        TextButton(
+          onPressed: () => Navigator.of(context).pop(),
+          child: const Text('Отмена'),
+        ),
+        ElevatedButton(
+          onPressed: _selectedUser == null
+              ? null
+              : () async {
+                  try {
+                    // Create a new chat with the selected user
+                    final chatRepository = ref.read(chatRepositoryProvider);
+                    
+                        await chatRepository.createChat(_selectedUser!.id);
+
+                    // Close dialog and navigate to the new chat
+                    if (context.mounted) {
+                      Navigator.of(context).pop();
+                      context.go('/chat/${_selectedUser!.id}');
+                    }
+                  } catch (e) {
+                    log('CreateChatDialog error: $e');
+                    // Show error if chat creation fails
+                    if (context.mounted) {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        SnackBar(
+                          content: Text('Не удалось создать чат: $e'),
+                          backgroundColor: Colors.red,
+                        ),
+                      );
+                    }
+                  }
+                },
+          child: const Text('Создать чат'),
+        ),
+      ],
+    );
+  }
+}
+
+// Extension method to show create chat dialog
+extension CreateChatDialogExtension on BuildContext {
+  Future<void> showCreateChatDialog() async => showDialog(
+        context: this,
+        builder: (context) => const CreateChatDialog(),
+      );
+}

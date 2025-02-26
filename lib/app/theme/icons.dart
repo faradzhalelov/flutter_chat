@@ -197,4 +197,6 @@ class Icomoon {
   static const IconData archiveFill = IconData(0xe9ba, fontFamily: _fontFamily);
   static const IconData settingFill = IconData(0xe9bb, fontFamily: _fontFamily);
   static const IconData mainFill = IconData(0xe9bc, fontFamily: _fontFamily);
+
+  static IconData? error_outline;
 }

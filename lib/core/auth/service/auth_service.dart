@@ -23,16 +23,34 @@ supabase.User? currentUser(Ref ref) {
 /// Provider for auth state to manage authentication
 @riverpod
 class AuthState extends _$AuthState {
+
   @override
   AsyncValue<supabase.User?> build() {
-    final authStream = ref.watch(authSessionStreamProvider);
+    // Начинаем с попытки получить текущего пользователя
+    final currentUser = supabase.Supabase.instance.client.auth.currentUser;
+    
+    // Если пользователь уже есть, возвращаем его немедленно
+    if (currentUser != null) {
+      return AsyncData(currentUser);
+    }
 
-    // Set initial state based on current auth stream value
-    return authStream.when(
-      data: (authState) => AsyncData(authState.session?.user),
-      loading: () => const AsyncLoading(),
-      error: (error, stackTrace) => AsyncError(error, stackTrace),
+    // Подписываемся на изменения состояния аутентификации
+    supabase.Supabase.instance.client.auth.onAuthStateChange.listen(
+      (event) {
+        // Обновляем состояние только при реальных изменениях
+        if (event.event == supabase.AuthChangeEvent.signedIn) {
+          state = AsyncData(event.session?.user);
+        } else if (event.event == supabase.AuthChangeEvent.signedOut) {
+          state = const AsyncData(null);
+        }
+      },
+      onError: (e) {
+        state = AsyncError(e as Object, StackTrace.current);
+      },
     );
+
+    // Возвращаем начальное состояние
+    return const AsyncLoading();
   }
 
   /// Sign in with email and password
@@ -42,7 +60,7 @@ class AuthState extends _$AuthState {
   }) async {
     log('signIn start');
     state = const AsyncLoading();
-    
+
     try {
       final response =
           await supabase.Supabase.instance.client.auth.signInWithPassword(
@@ -59,9 +77,9 @@ class AuthState extends _$AuthState {
           StackTrace.current,
         );
         throw const supabase.AuthException(
-            'Ошибка авторизации: Пользователь не найден',);
+          'Ошибка авторизации: Пользователь не найден',
+        );
       }
-      log('signIn finish');
     } catch (e, stackTrace) {
       state = AsyncError(_handleAuthError(e), stackTrace);
       rethrow;

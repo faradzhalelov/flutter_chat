@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_chat/app/theme/colors.dart';
+import 'package:flutter_chat/app/theme/icons.dart';
 import 'package:flutter_chat/core/utils/extentions/date_extensions.dart';
 import 'package:flutter_chat/core/utils/typedef/typedef.dart';
 import 'package:flutter_chat/features/chat/data/models/atachment_type.dart';
@@ -36,7 +37,7 @@ class ChatListItem extends StatelessWidget {
         alignment: Alignment.centerRight,
         padding: const EdgeInsets.only(right: 16),
         child: const Icon(
-          Icons.delete,
+          Icomoon.delete,
           color: Colors.white,
         ),
       ),
@@ -44,87 +45,95 @@ class ChatListItem extends StatelessWidget {
       child: InkWell(
         onTap: onTap,
         child: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-          child: Row(
-            children: [
-              // Avatar
-              UserAvatar(
-                userName: chat.user.username,
-                avatarUrl: chat.user.avatarUrl,
-                colorIndex: colorIndex,
-                size: 48,
-              ),
-              const SizedBox(width: 12),
-              
-              // Chat info
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    // Name and time
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          padding: const EdgeInsets.symmetric(horizontal: 20),
+          child: DecoratedBox(
+            decoration: const BoxDecoration(
+              border: Border(bottom: BorderSide(color: AppColors.divider)),
+            ),
+            child: Padding(
+          padding: const EdgeInsets.symmetric(vertical: 10),
+              child: Row(
+                children: [
+                  // Avatar
+                  UserAvatar(
+                    userName: chat.user.username,
+                    avatarUrl: chat.user.avatarUrl,
+                    colorIndex: colorIndex,
+                    size: 48,
+                  ),
+                  const SizedBox(width: 12),
+                  
+                  // Chat info
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Text(
-                          chat.user.username,
-                          style: TextStyle(
-                            fontSize: 16,
-                            fontWeight: hasUnread ? FontWeight.bold : FontWeight.normal,
-                          ),
-                        ),
-                        Text(
-                          _formatTime(chat.lastMessageTime),
-                          style: TextStyle(
-                            fontSize: 14,
-                            color: Colors.grey.shade500,
-                          ),
-                        ),
-                      ],
-                    ),
-                    const SizedBox(height: 4),
-                    
-                    // Message preview
-                    Row(
-                      children: [
-                        if (lastMessage?.isMe ?? false)
-                          Padding(
-                            padding: const EdgeInsets.only(right: 4),
-                            child: Text(
-                              'Вы: ',
+                        // Name and time
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: [
+                            Text(
+                              chat.user.username,
                               style: TextStyle(
-                                fontSize: 14,
-                                color: Colors.grey.shade600,
+                                fontSize: 16,
+                                fontWeight: hasUnread ? FontWeight.bold : FontWeight.normal,
                               ),
                             ),
-                          ),
-                        Expanded(
-                          child: Text(
-                            _getMessagePreview(lastMessage),
-                            style: TextStyle(
-                              fontSize: 14,
-                              color: hasUnread ? Colors.black : Colors.grey.shade600,
-                              fontWeight: hasUnread ? FontWeight.bold : FontWeight.normal,
+                            Text(
+                              _formatTime(chat.lastMessageTime),
+                              style: TextStyle(
+                                fontSize: 14,
+                                color: Colors.grey.shade500,
+                              ),
                             ),
-                            maxLines: 1,
-                            overflow: TextOverflow.ellipsis,
-                          ),
+                          ],
                         ),
-                        if (hasUnread)
-                          Container(
-                            margin: const EdgeInsets.only(left: 4),
-                            width: 8,
-                            height: 8,
-                            decoration: const BoxDecoration(
-                              color: AppColors.myMessageBubble,
-                              shape: BoxShape.circle,
+                        const SizedBox(height: 4),
+                        
+                        // Message preview
+                        Row(
+                          children: [
+                            if (lastMessage?.isMe ?? false)
+                              Padding(
+                                padding: const EdgeInsets.only(right: 4),
+                                child: Text(
+                                  'Вы: ',
+                                  style: TextStyle(
+                                    fontSize: 14,
+                                    color: Colors.grey.shade600,
+                                  ),
+                                ),
+                              ),
+                            Expanded(
+                              child: Text(
+                                _getMessagePreview(lastMessage),
+                                style: TextStyle(
+                                  fontSize: 14,
+                                  color: hasUnread ? Colors.black : Colors.grey.shade600,
+                                  fontWeight: hasUnread ? FontWeight.bold : FontWeight.normal,
+                                ),
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
+                              ),
                             ),
-                          ),
+                            if (hasUnread)
+                              Container(
+                                margin: const EdgeInsets.only(left: 4),
+                                width: 8,
+                                height: 8,
+                                decoration: const BoxDecoration(
+                                  color: AppColors.myMessageBubble,
+                                  shape: BoxShape.circle,
+                                ),
+                              ),
+                          ],
+                        ),
                       ],
                     ),
-                  ],
-                ),
+                  ),
+                ],
               ),
-            ],
+            ),
           ),
         ),
       ),

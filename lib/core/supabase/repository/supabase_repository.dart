@@ -26,70 +26,72 @@ class SupabaseChatRepository implements ChatRepository {
   }
   
   @override
-  Future<List<ChatModel>> getChatsForCurrentUser() async {
-    try {
-      final userId = _currentUserId;
-      
-      // Get all chats that the user is a member of
-      final chatMembersResponse = await _client
-        .from('chat_members')
-        .select('chat_id')
-        .eq('user_id', userId);
-      
-      final chatIds = chatMembersResponse.map((item) => item['chat_id'] as String).toList();
-      if (chatIds.isEmpty) return [];
-      
-      // Get chat details - using "in" filter instead of "in_"
-      final chatsResponse = await _client
-        .from('chats')
-        .select()
-        .filter('id', 'in', chatIds)
-        .order('last_message_at', ascending: false);
-      
-      final chats = <ChatModel>[];
-      
-      for (final chatData in chatsResponse) {
-        final otherMembersResponse = await _client
-          .from('chat_members')
-          .select('user_id')
-          .eq('chat_id', chatData['id'] as String)
-          .neq('user_id', userId);
+  Stream<List<ChatModel>> getChatsForCurrentUserStream() {
+  try {
+    final userId = _currentUserId;
+    
+    // Создаем стрим с постоянным обновлением
+    return _client
+      .from('chat_members')
+      .stream(primaryKey: ['id'])
+      .eq('user_id', userId)
+      .asyncMap((chatMemberData) async {
+        // Для каждого членства в чате получаем полную информацию о чате
+        final chatIds = chatMemberData.map((item) => item['chat_id'] as String).toList();
+        if (chatIds.isEmpty) return <ChatModel>[];
         
-        if (otherMembersResponse.isEmpty) continue;
-        
-        // Get the other user's details
-        final otherUserId = otherMembersResponse[0]['user_id'];
-        final userResponse = await _client
-          .from('users')
+        // Получаем чаты с сортировкой по последнему сообщению
+        final chatsResponse = await _client
+          .from('chats')
           .select()
-          .eq('id', otherUserId as String)
-          .single();
+          .filter('id', 'in', chatIds)
+          .order('last_message_at', ascending: false);
         
-        // Get the last message
-        final lastMessageResponse = await _client
-          .from('messages')
-          .select()
-          .eq('chat_id', chatData['id'] as String)
-          .order('created_at', ascending: false)
-          .limit(1)
-          .maybeSingle();
+        final chats = <ChatModel>[];
         
-        final otherUser = UserModel.fromSupabase(userResponse);
-        
-        MessageModel? lastMessage;
-        if (lastMessageResponse != null) {
-          lastMessage = MessageModel.fromSupabase(lastMessageResponse, userId);
+        for (final chatData in chatsResponse) {
+          // Находим других участников чата
+          final otherMembersResponse = await _client
+            .from('chat_members')
+            .select('user_id')
+            .eq('chat_id', chatData['id'] as String)
+            .neq('user_id', userId);
+          
+          if (otherMembersResponse.isEmpty) continue;
+          
+          // Получаем данные другого пользователя
+          final otherUserId = otherMembersResponse[0]['user_id'];
+          final userResponse = await _client
+            .from('users')
+            .select()
+            .eq('id', otherUserId as String)
+            .single();
+          
+          // Получаем последнее сообщение
+          final lastMessageResponse = await _client
+            .from('messages')
+            .select()
+            .eq('chat_id', chatData['id'] as String)
+            .order('created_at', ascending: false)
+            .limit(1)
+            .maybeSingle();
+          
+          final otherUser = UserModel.fromSupabase(userResponse);
+          
+          MessageModel? lastMessage;
+          if (lastMessageResponse != null) {
+            lastMessage = MessageModel.fromSupabase(lastMessageResponse, userId);
+          }
+          
+          chats.add(ChatModel.fromSupabase(chatData, otherUser, lastMessage));
         }
         
-        chats.add(ChatModel.fromSupabase(chatData, otherUser, lastMessage));
-      }
-      
-      return chats;
-    } catch (e) {
-      throw _handleError(e);
-    }
+        return chats;
+      });
+  } catch (e) {
+    throw _handleError(e);
   }
-  
+}
   @override
   Future<List<MessageModel>> getMessagesForChat(String chatId) async {
     try {
@@ -456,20 +458,7 @@ final chatListStreamProvider = StreamProvider<List<ChatModel>>((ref) async* {
   final repository = ref.watch(chatRepositoryProvider);
   
   // Initial load
-  var chats = await repository.getChatsForCurrentUser();
-  yield chats;
-  
-  // Listen to message table changes
-  final stream = SupabaseService.client
-    .from('messages')
-    .stream(primaryKey: ['id'])
-    .execute();
-  
-  // Whenever a new message comes in, refresh the chat list
-  await for (final _ in stream) {
-    chats = await repository.getChatsForCurrentUser();
-    yield chats;
-  }
+  yield*  repository.getChatsForCurrentUserStream();
 });
 
 /// Stream provider for messages in a specific chat

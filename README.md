@@ -25,3 +25,8 @@
 ### Figma:
     - https://www.figma.com/design/sZlbHjGr8gXuEnsXnbDunV/
 
+### Supabase:
+    - test users: 
+        - email= test@test.com password= TestPassword=102030
+        - email= test2@test.com password= TestPassword=102030
+        
