@@ -63,9 +63,9 @@ flutter:
   generate: true
 
   fonts:
-    # - family: icomoon
-    #   fonts:
-    #     - asset: fonts/Icomoon.ttf
+    - family: icomoon
+      fonts:
+        - asset: fonts/icomoon.ttf
 
     - family: Gilroy
       fonts:
