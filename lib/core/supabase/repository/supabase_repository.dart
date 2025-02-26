@@ -1,8 +1,10 @@
+// lib/data/repositories/supabase_chat_repository.dart
 import 'dart:io';
 
+import 'package:flutter_chat/core/supabase/repository/chat_repository.dart';
 import 'package:flutter_chat/core/supabase/service/supabase_service.dart';
-import 'package:flutter_chat/features/chat/data/models/atachment_type.dart';
 import 'package:flutter_chat/features/chat/data/models/chat.dart';
+import 'package:flutter_chat/features/chat/data/models/chat_member.dart';
 import 'package:flutter_chat/features/chat/data/models/message.dart';
 import 'package:flutter_chat/features/chat/data/models/user.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -10,345 +12,448 @@ import 'package:path/path.dart' as path;
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:uuid/uuid.dart';
 
-class SupabaseChatRepository {
+/// Implementation of ChatRepository using Supabase as the backend
+class SupabaseChatRepository implements ChatRepository {
   
   SupabaseChatRepository(this._client);
   final SupabaseClient _client;
   
-  // Get all chats for current user
-  Future<List<ChatModel>> getChatsForCurrentUser() async {
+  /// Gets the current user ID or throws an exception if not authenticated
+  String get _currentUserId {
     final userId = _client.auth.currentUser?.id;
-    if (userId == null) return [];
-    
-    // Get all chats that the user is a member of
-    final response = await _client
-      .from('chat_members')
-      .select('chat_id')
-      .eq('user_id', userId);
-    
-    final chatIds = (response as List).map((item) => item['chat_id'] as String).toList();
-    if (chatIds.isEmpty) return [];
-    
-    // Get chat details with last message
-    final chatsResponse = await _client
-      .from('chats')
-      .select('*, chat_members!inner(user_id)')
-      .in_('id', chatIds)
-      .order('last_message_at', ascending: false);
-    
-    final chats = <ChatModel>[];
-    
-    for (final chat in chatsResponse) {
-      // Get other members of the chat (for 1:1 chats, this is the other user)
-      final otherMembers = await _client
+    if (userId == null) throw Exception('User not authenticated');
+    return userId;
+  }
+  
+  @override
+  Future<List<ChatModel>> getChatsForCurrentUser() async {
+    try {
+      final userId = _currentUserId;
+      
+      // Get all chats that the user is a member of
+      final chatMembersResponse = await _client
         .from('chat_members')
-        .select('user_id')
-        .eq('chat_id', chat['id'])
-        .neq('user_id', userId);
+        .select('chat_id')
+        .eq('user_id', userId);
       
-      if (otherMembers.isEmpty) continue;
+      final chatIds = chatMembersResponse.map((item) => item['chat_id'] as String).toList();
+      if (chatIds.isEmpty) return [];
       
-      // Get the other user's details
-      final otherUserId = otherMembers[0]['user_id'];
-      final userResponse = await _client
-        .from('users')
+      // Get chat details - using "in" filter instead of "in_"
+      final chatsResponse = await _client
+        .from('chats')
         .select()
-        .eq('id', otherUserId)
-        .single();
+        .filter('id', 'in', chatIds)
+        .order('last_message_at', ascending: false);
       
-      // Get the last message
-      final lastMessageResponse = await _client
-        .from('messages')
-        .select()
-        .eq('chat_id', chat['id'])
-        .order('created_at', ascending: false)
-        .limit(1)
-        .maybeSingle();
+      final chats = <ChatModel>[];
       
-      final otherUser = UserModel(
-        id: userResponse['id'] as int,
-        name: userResponse['username'] as String,
-        avatarUrl: userResponse['avatar_url'] as String?,
-        email: userResponse['email'] as String,
-        createdAt: DateTime.parse(userResponse['created_at'] as String),
-      );
-      
-      MessageModel? lastMessage;
-      if (lastMessageResponse != null) {
-        lastMessage = MessageModel(
-          id: lastMessageResponse['id'],
-          chatId: lastMessageResponse['chat_id'],
-          isMe: lastMessageResponse['user_id'] == userId,
-          text: lastMessageResponse['content'],
-          attachmentPath: lastMessageResponse['attachment_url'],
-          attachmentType: _mapMessageTypeToAttachmentType(lastMessageResponse['message_type']),
-          createdAt: DateTime.parse(lastMessageResponse['created_at']),
-          isRead: lastMessageResponse['is_read'],
-        );
+      for (final chatData in chatsResponse) {
+        final otherMembersResponse = await _client
+          .from('chat_members')
+          .select('user_id')
+          .eq('chat_id', chatData['id'] as String)
+          .neq('user_id', userId);
+        
+        if (otherMembersResponse.isEmpty) continue;
+        
+        // Get the other user's details
+        final otherUserId = otherMembersResponse[0]['user_id'];
+        final userResponse = await _client
+          .from('users')
+          .select()
+          .eq('id', otherUserId as String)
+          .single();
+        
+        // Get the last message
+        final lastMessageResponse = await _client
+          .from('messages')
+          .select()
+          .eq('chat_id', chatData['id'] as String)
+          .order('created_at', ascending: false)
+          .limit(1)
+          .maybeSingle();
+        
+        final otherUser = UserModel.fromSupabase(userResponse);
+        
+        MessageModel? lastMessage;
+        if (lastMessageResponse != null) {
+          lastMessage = MessageModel.fromSupabase(lastMessageResponse, userId);
+        }
+        
+        chats.add(ChatModel.fromSupabase(chatData, otherUser, lastMessage));
       }
       
-      chats.add(ChatModel(
-        id: chat['id'],
-        user: otherUser,
-        createdAt: DateTime.parse(chat['created_at']),
-        lastMessageTime: lastMessage?.createdAt,
-        lastMessage: lastMessage,
-      ));
+      return chats;
+    } catch (e) {
+      throw _handleError(e);
     }
-    
-    return chats;
   }
   
-  // Get all messages for a chat
+  @override
   Future<List<MessageModel>> getMessagesForChat(String chatId) async {
-    final userId = _client.auth.currentUser?.id;
-    if (userId == null) return [];
-    
-    final response = await _client
-      .from('messages')
-      .select()
-      .eq('chat_id', chatId)
-      .order('created_at');
-    
-    return (response as List).map((message) => MessageModel(
-      id: message['id'],
-      chatId: message['chat_id'],
-      isMe: message['user_id'] == userId,
-      text: message['content'],
-      attachmentPath: message['attachment_url'],
-      attachmentType: _mapMessageTypeToAttachmentType(message['message_type']),
-      createdAt: DateTime.parse(message['created_at']),
-      isRead: message['is_read'],
-    )).toList();
-  }
-  
-  // Create a new chat with a user
-  Future<String> createChat(String otherUserId) async {
-    final userId = _client.auth.currentUser?.id;
-    if (userId == null) throw Exception('User not authenticated');
-    
-    // Check if a chat already exists between these users
-    final existingChat = await _findExistingChat(userId, otherUserId);
-    if (existingChat != null) return existingChat;
-    
-    // Create a new chat
-    final chatResponse = await _client
-      .from('chats')
-      .insert({})
-      .select('id')
-      .single();
-    
-    final chatId = chatResponse['id'] as String;
-    
-    // Add both users to the chat
-    await _client.from('chat_members').insert([
-      {'chat_id': chatId, 'user_id': userId},
-      {'chat_id': chatId, 'user_id': otherUserId},
-    ]);
-    
-    return chatId;
-  }
-  
-  // Helper method to find existing chat
-  Future<String?> _findExistingChat(String userId, String otherUserId) async {
-    // Find chats where both users are members
-    final response = await _client
-      .from('chat_members')
-      .select('chat_id')
-      .eq('user_id', userId);
-    
-    final chatIds = (response as List).map((item) => item['chat_id'] as String).toList();
-    if (chatIds.isEmpty) return null;
-    
-    final otherUserChats = await _client
-      .from('chat_members')
-      .select('chat_id')
-      .eq('user_id', otherUserId)
-      .in_('chat_id', chatIds);
-    
-    if (otherUserChats.isEmpty) return null;
-    
-    // Check if this is a 1:1 chat (only 2 members)
-    final chatId = otherUserChats[0]['chat_id'];
-    final membersCount = await _client
-      .from('chat_members')
-      .select('id', { 'count': 'exact' })
-      .eq('chat_id', chatId);
-    
-    if (membersCount.count == 2) {
-      return chatId;
+    try {
+      final userId = _currentUserId;
+      
+      final response = await _client
+        .from('messages')
+        .select()
+        .eq('chat_id', chatId)
+        .order('created_at');
+      
+      return response
+        .whereType<Map<String, dynamic>>()
+        .map((messageData) => 
+          MessageModel.fromSupabase(messageData, userId),
+        ).toList();
+    } catch (e) {
+      throw _handleError(e);
     }
-    
-    return null;
   }
   
-  // Send a text message
-  Future<void> sendTextMessage(String chatId, String text) async {
-    final userId = _client.auth.currentUser?.id;
-    if (userId == null) throw Exception('User not authenticated');
-    
-    await _client.from('messages').insert({
-      'chat_id': chatId,
-      'user_id': userId,
-      'content': text,
-      'message_type': 'text',
-    });
-    
-    await _updateChatLastMessageTime(chatId);
+  @override
+  Future<String> createChat(String otherUserId) async {
+    try {
+      final userId = _currentUserId;
+      
+      // Check if a chat already exists between these users
+      final existingChat = await _findExistingChat(userId, otherUserId);
+      if (existingChat != null) return existingChat;
+      
+      // Create a new chat
+      final chatResponse = await _client
+        .from('chats')
+        .insert({
+          'created_at': DateTime.now().toIso8601String(),
+          'last_message_at': DateTime.now().toIso8601String(),
+        })
+        .select()
+        .single();
+      
+      final chatId = chatResponse['id'] as String;
+      
+      // Add both users to the chat
+      await _client.from('chat_members').insert([
+        {'chat_id': chatId, 'user_id': userId},
+        {'chat_id': chatId, 'user_id': otherUserId},
+      ]);
+      
+      return chatId;
+    } catch (e) {
+      throw _handleError(e);
+    }
   }
   
-  // Send an image message
-  Future<void> sendImageMessage(String chatId, File imageFile) async {
-    final attachment = await _uploadAttachment(imageFile, 'image');
-    await _sendAttachmentMessage(
-      chatId: chatId, 
-      attachmentUrl: attachment.url,
-      attachmentName: attachment.name,
-      messageType: 'image',
-    );
+  /// Helper method to find an existing chat between two users
+  Future<String?> _findExistingChat(String userId, String otherUserId) async {
+    try {
+      // Find chats where the current user is a member
+      final userChatsResponse = await _client
+        .from('chat_members')
+        .select('chat_id')
+        .eq('user_id', userId);
+      
+      final chatIds = userChatsResponse.map((item) => item['chat_id'] as String).toList();
+      if (chatIds.isEmpty) return null;
+      
+      // Find which of those chats the other user is also a member of
+      final otherUserChatsResponse = await _client
+        .from('chat_members')
+        .select('chat_id')
+        .eq('user_id', otherUserId)
+        .filter('chat_id', 'in', chatIds);
+      
+      if (otherUserChatsResponse.isEmpty) {
+        return null;
+      }
+      
+      // Check if this is a 1:1 chat (only 2 members)
+      final chatId = otherUserChatsResponse[0]['chat_id'] as String;
+      
+      // Count members in the chat
+      final membersCountResponse = await _client
+        .from('chat_members')
+        .select()
+        .eq('chat_id', chatId);
+      
+      final membersCount = membersCountResponse.length;
+      if (membersCount == 2) {
+        return chatId;
+      }
+      
+      return null;
+    } catch (e) {
+      return null;
+    }
   }
   
-  // Send a video message
-  Future<void> sendVideoMessage(String chatId, File videoFile) async {
-    final attachment = await _uploadAttachment(videoFile, 'video');
-    await _sendAttachmentMessage(
-      chatId: chatId, 
-      attachmentUrl: attachment.url,
-      attachmentName: attachment.name,
-      messageType: 'video',
-    );
+  @override
+  Future<MessageModel> sendTextMessage(String chatId, String text) async {
+    try {
+      final userId = _currentUserId;
+      
+      final messageData = {
+        'chat_id': chatId,
+        'user_id': userId,
+        'content': text,
+        'message_type': 'text',
+        'created_at': DateTime.now().toIso8601String(),
+        'updated_at': DateTime.now().toIso8601String(),
+        'is_read': false,
+      };
+      
+      final response = await _client
+        .from('messages')
+        .insert(messageData)
+        .select()
+        .single();
+      
+      await _updateChatLastMessageTime(chatId);
+      
+      return MessageModel.fromSupabase(response, userId);
+    } catch (e) {
+      throw _handleError(e);
+    }
   }
   
-  // Send a file message
-  Future<void> sendFileMessage(String chatId, File file) async {
-    final attachment = await _uploadAttachment(file, 'file');
-    await _sendAttachmentMessage(
-      chatId: chatId, 
-      attachmentUrl: attachment.url,
-      attachmentName: attachment.name,
-      messageType: 'file',
-    );
+  @override
+  Future<MessageModel> sendImageMessage(String chatId, File imageFile) async {
+    try {
+      final attachment = await _uploadAttachment(imageFile, 'image');
+      return _sendAttachmentMessage(
+        chatId: chatId, 
+        attachmentUrl: attachment.url,
+        attachmentName: attachment.name,
+        messageType: 'image',
+      );
+    } catch (e) {
+      throw _handleError(e);
+    }
   }
   
-  // Send an audio message
-  Future<void> sendAudioMessage(String chatId, File audioFile) async {
-    final attachment = await _uploadAttachment(audioFile, 'audio');
-    await _sendAttachmentMessage(
-      chatId: chatId, 
-      attachmentUrl: attachment.url,
-      attachmentName: attachment.name,
-      messageType: 'audio',
-    );
+  @override
+  Future<MessageModel> sendVideoMessage(String chatId, File videoFile) async {
+    try {
+      final attachment = await _uploadAttachment(videoFile, 'video');
+      return _sendAttachmentMessage(
+        chatId: chatId, 
+        attachmentUrl: attachment.url,
+        attachmentName: attachment.name,
+        messageType: 'video',
+      );
+    } catch (e) {
+      throw _handleError(e);
+    }
   }
   
-  // Helper method to upload attachments
+  @override
+  Future<MessageModel> sendFileMessage(String chatId, File file) async {
+    try {
+      final attachment = await _uploadAttachment(file, 'file');
+      return _sendAttachmentMessage(
+        chatId: chatId, 
+        attachmentUrl: attachment.url,
+        attachmentName: attachment.name,
+        messageType: 'file',
+      );
+    } catch (e) {
+      throw _handleError(e);
+    }
+  }
+  
+  @override
+  Future<MessageModel> sendAudioMessage(String chatId, File audioFile) async {
+    try {
+      final attachment = await _uploadAttachment(audioFile, 'audio');
+      return _sendAttachmentMessage(
+        chatId: chatId, 
+        attachmentUrl: attachment.url,
+        attachmentName: attachment.name,
+        messageType: 'audio',
+      );
+    } catch (e) {
+      throw _handleError(e);
+    }
+  }
+  
+  /// Helper method to upload attachments to Supabase storage
   Future<({String url, String name})> _uploadAttachment(File file, String type) async {
-    final userId = _client.auth.currentUser?.id;
-    if (userId == null) throw Exception('User not authenticated');
-    
-    final fileName = path.basename(file.path);
-    final fileExt = path.extension(fileName);
-    final uuid = const Uuid().v4();
-    final storagePath = '$type/$userId/$uuid$fileExt';
-    
-    await _client.storage.from('attachments').upload(
-      storagePath,
-      file,
-      fileOptions: const FileOptions(cacheControl: '3600', upsert: false),
-    );
-    
-    final url = _client.storage.from('attachments').getPublicUrl(storagePath);
-    return (url: url, name: fileName);
+    try {
+      final userId = _currentUserId;
+      
+      final fileName = path.basename(file.path);
+      final fileExt = path.extension(fileName);
+      final uuid = const Uuid().v4();
+      final storagePath = '$type/$userId/$uuid$fileExt';
+      
+      await _client.storage.from('attachments').upload(
+        storagePath,
+        file,
+      );
+      
+      final url = _client.storage.from('attachments').getPublicUrl(storagePath);
+      return (url: url, name: fileName);
+    } catch (e) {
+      throw _handleError(e);
+    }
   }
   
-  // Helper method to send attachment message
-  Future<void> _sendAttachmentMessage({
+  /// Helper method to send an attachment message
+  Future<MessageModel> _sendAttachmentMessage({
     required String chatId,
     required String attachmentUrl,
     required String attachmentName,
     required String messageType,
   }) async {
-    final userId = _client.auth.currentUser?.id;
-    if (userId == null) throw Exception('User not authenticated');
-    
-    await _client.from('messages').insert({
-      'chat_id': chatId,
-      'user_id': userId,
-      'message_type': messageType,
-      'attachment_url': attachmentUrl,
-      'attachment_name': attachmentName,
-    });
-    
-    await _updateChatLastMessageTime(chatId);
+    try {
+      final userId = _currentUserId;
+      
+      final messageData = {
+        'chat_id': chatId,
+        'user_id': userId,
+        'message_type': messageType,
+        'attachment_url': attachmentUrl,
+        'attachment_name': attachmentName,
+        'created_at': DateTime.now().toIso8601String(),
+        'updated_at': DateTime.now().toIso8601String(),
+        'is_read': false,
+      };
+      
+      final response = await _client
+        .from('messages')
+        .insert(messageData)
+        .select()
+        .single();
+      
+      await _updateChatLastMessageTime(chatId);
+      
+      return MessageModel.fromSupabase(response, userId);
+    } catch (e) {
+      throw _handleError(e);
+    }
   }
   
-  // Update last_message_at in chat
+  /// Update the last_message_at timestamp in a chat
   Future<void> _updateChatLastMessageTime(String chatId) async {
-    await _client
-      .from('chats')
-      .update({'last_message_at': DateTime.now().toIso8601String()})
-      .eq('id', chatId);
+    try {
+      await _client
+        .from('chats')
+        .update({
+          'last_message_at': DateTime.now().toIso8601String(),
+        })
+        .eq('id', chatId);
+    } catch (e) {
+      throw _handleError(e);
+    }
   }
   
-  // Mark messages as read
+  @override
   Future<void> markMessagesAsRead(String chatId) async {
-    final userId = _client.auth.currentUser?.id;
-    if (userId == null) return;
-    
-    await _client
-      .from('messages')
-      .update({'is_read': true})
-      .eq('chat_id', chatId)
-      .neq('user_id', userId)
-      .eq('is_read', false);
+    try {
+      final userId = _currentUserId;
+      
+      await _client
+        .from('messages')
+        .update({'is_read': true})
+        .eq('chat_id', chatId)
+        .neq('user_id', userId)
+        .eq('is_read', false);
+    } catch (e) {
+      throw _handleError(e);
+    }
   }
   
-  // Delete a chat
+  @override
   Future<void> deleteChat(String chatId) async {
-    await _client.from('chats').delete().eq('id', chatId);
+    try {
+      // This will cascade delete all messages and chat_members due to FK constraints
+      await _client.from('chats').delete().eq('id', chatId);
+    } catch (e) {
+      throw _handleError(e);
+    }
   }
   
-  // Subscribe to new messages in a chat
-  Stream<MessageModel> subscribeToMessages(String chatId) {
-    final userId = _client.auth.currentUser?.id;
+  @override
+Stream<MessageModel> subscribeToMessages(String chatId) {
+  try {
+    final userId = _currentUserId;
     
     return _client
       .from('messages')
       .stream(primaryKey: ['id'])
       .eq('chat_id', chatId)
-      .order('created_at')
-      .map((event) => MessageModel(
-        id: event['id'],
-        chatId: event['chat_id'],
-        isMe: event['user_id'] == userId,
-        text: event['content'],
-        attachmentPath: event['attachment_url'],
-        attachmentType: _mapMessageTypeToAttachmentType(event['message_type']),
-        createdAt: DateTime.parse(event['created_at']),
-        isRead: event['is_read'],
-      ));
+      .map((event) {
+        if (event is Map<String, dynamic>) {
+          return MessageModel.fromSupabase(event as Map<String, dynamic>, userId);
+        } 
+        // For other Supabase versions where event is a RealtimeMessage
+        else if (event.isNotEmpty) {
+          return MessageModel.fromSupabase(event.first, userId);
+        } else {
+          throw Exception('Invalid message format in stream: ${event.runtimeType}');
+        }
+      });
+  } catch (e) {
+    throw _handleError(e);
+  }
+}
+  
+  @override
+  Future<List<ChatMemberModel>> getChatMembers(String chatId) async {
+    try {
+      final response = await _client
+        .from('chat_members')
+        .select()
+        .eq('chat_id', chatId);
+      
+      return response
+        .whereType<Map<String, dynamic>>()
+        .map((data) => 
+          ChatMemberModel.fromSupabase(data),
+        ).toList();
+    } catch (e) {
+      throw _handleError(e);
+    }
   }
   
-  // Map message type from database to app enum
-  AttachmentType _mapMessageTypeToAttachmentType(String? messageType) {
-    switch (messageType) {
-      case 'image': return AttachmentType.image;
-      case 'video': return AttachmentType.video;
-      case 'file': return AttachmentType.file;
-      case 'audio': return AttachmentType.voice;
-      default: return AttachmentType.none;
+  @override
+  Future<UserModel> getUserById(String userId) async {
+    try {
+      final response = await _client
+        .from('users')
+        .select()
+        .eq('id', userId)
+        .single();
+      
+      return UserModel.fromSupabase(response);
+    } catch (e) {
+      throw _handleError(e);
+    }
+  }
+  
+  /// Handles errors from Supabase and converts them to more user-friendly exceptions
+  Exception _handleError(dynamic error) {
+    if (error is PostgrestException) {
+      return Exception('Database error: ${error.message}');
+    } else if (error is StorageException) {
+      return Exception('Storage error: ${error.message}');
+    } else if (error is AuthException) {
+      return Exception('Authentication error: ${error.message}');
+    } else {
+      return Exception('Unexpected error: $error');
     }
   }
 }
 
-final supabaseChatRepositoryProvider = Provider<SupabaseChatRepository>((ref) {
+/// Provider for the chat repository
+final chatRepositoryProvider = Provider<ChatRepository>((ref) {
   final client = ref.watch(supabaseProvider);
   return SupabaseChatRepository(client);
 });
 
-// Provider for streaming chat list updates
+/// Stream provider for chat list
 final chatListStreamProvider = StreamProvider<List<ChatModel>>((ref) async* {
-  final repository = ref.watch(supabaseChatRepositoryProvider);
+  final repository = ref.watch(chatRepositoryProvider);
   
   // Initial load
   var chats = await repository.getChatsForCurrentUser();
@@ -367,9 +472,9 @@ final chatListStreamProvider = StreamProvider<List<ChatModel>>((ref) async* {
   }
 });
 
-// Provider for messages in a specific chat
+/// Stream provider for messages in a specific chat
 final chatMessagesProvider = StreamProvider.family<List<MessageModel>, String>((ref, chatId) async* {
-  final repository = ref.watch(supabaseChatRepositoryProvider);
+  final repository = ref.watch(chatRepositoryProvider);
   
   // Initial load
   var messages = await repository.getMessagesForChat(chatId);
@@ -378,10 +483,13 @@ final chatMessagesProvider = StreamProvider.family<List<MessageModel>, String>((
   // Mark messages as read
   await repository.markMessagesAsRead(chatId);
   
-  // Listen to new messages
-  final stream = repository.subscribeToMessages(chatId);
+  // Listen to new messages for this chat
+  final client = SupabaseService.client;
+  final stream = client.from('messages')
+    .stream(primaryKey: ['id'])
+    .eq('chat_id', chatId);
   
-  await for (final message in stream) {
+  await for (final _ in stream) {
     messages = await repository.getMessagesForChat(chatId);
     yield messages;
     
