@@ -26,7 +26,8 @@ abstract class ChatRepository {
 
   /// Sends an image message in a chat
   /// Returns the created message
-  Future<MessageModel> sendImageMessage(String chatId, File imageFile);
+  Future<MessageModel> sendImageMessage(
+      String chatId, String? imageFile, String imageName);
 
   /// Sends a video message in a chat
   /// Returns the created message

@@ -3,6 +3,7 @@ import 'dart:io';
 
 import 'package:flutter_chat/core/supabase/repository/chat_repository.dart';
 import 'package:flutter_chat/core/supabase/service/supabase_service.dart';
+import 'package:flutter_chat/features/chat/data/models/atachment_type.dart';
 import 'package:flutter_chat/features/chat/data/models/chat.dart';
 import 'package:flutter_chat/features/chat/data/models/chat_member.dart';
 import 'package:flutter_chat/features/chat/data/models/message.dart';
@@ -301,13 +302,15 @@ Future<List<ChatModel>> getChatsForCurrentUser() async {
   }
   
   @override
-  Future<MessageModel> sendImageMessage(String chatId, File imageFile) async {
+  Future<MessageModel> sendImageMessage(String chatId, String? imageFile, String imageName) async {
     try {
-      final attachment = await _uploadAttachment(imageFile, 'image');
+      if (imageFile == null) {
+        throw Exception('Failed to upload image');
+      }
       return _sendAttachmentMessage(
         chatId: chatId, 
-        attachmentUrl: attachment.url,
-        attachmentName: attachment.name,
+        attachmentUrl: imageFile,
+        attachmentName: imageName,
         messageType: 'image',
       );
     } catch (e) {
@@ -370,12 +373,12 @@ Future<List<ChatModel>> getChatsForCurrentUser() async {
       final uuid = const Uuid().v4();
       final storagePath = '$type/$userId/$uuid$fileExt';
       
-      await supabase.storage.from('attachments').upload(
+      await supabase.storage.from(type).upload(
         storagePath,
         file,
       );
       
-      final url = supabase.storage.from('attachments').getPublicUrl(storagePath);
+      final url = supabase.storage.from(type).getPublicUrl(storagePath);
       return (url: url, name: fileName);
     } catch (e) {
       throw _handleError(e);

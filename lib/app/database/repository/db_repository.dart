@@ -330,25 +330,17 @@ class DriftChatRepository implements ChatRepository {
   }
 
   @override
-  Future<MessageModel> sendImageMessage(String chatId, File imageFile) async {
+  Future<MessageModel> sendImageMessage(String chatId, String? imageFile, String imageName) async {
     try {
-      final userId = _currentUserId;
-      final xFile = XFile(imageFile.path);
+     
       
-      // Use FileUploadService to upload and create message
-      final messageId = await _fileUploadService.uploadImage(
-        xFile,
-        chatId,
-        userId,
-      );
-      
-      if (messageId == null) {
+      if (imageFile == null) {
         throw Exception('Failed to upload image');
       }
 
       // Get the created message
       final message = await (_messagesDao.select(_messagesDao.messages)
-            ..where((m) => m.id.equals(messageId)))
+            ..where((m) => m.id.equals(imageFile)))
           .getSingle();
 
       // Return as model

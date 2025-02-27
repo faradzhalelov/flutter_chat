@@ -4,6 +4,8 @@ enum AttachmentType {
   video,
   file,
   audio;
+
+  
 }
 
 // Extension method to convert AttachmentType to String

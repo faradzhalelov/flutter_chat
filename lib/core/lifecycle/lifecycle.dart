@@ -21,6 +21,7 @@ class _AppLifecycleManagerState extends ConsumerState<AppLifecycleManager> with 
   void initState() {
     super.initState();
     WidgetsBinding.instance.addObserver(this);
+    WidgetsBinding.instance.addPostFrameCallback((_)=> Future.delayed(Durations.long1, ()=> _updateUserStatus(true)));
   }
 
   @override

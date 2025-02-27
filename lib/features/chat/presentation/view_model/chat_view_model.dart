@@ -4,8 +4,10 @@ import 'dart:io';
 
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_chat/app/database/repository/db_repository.dart';
 import 'package:flutter_chat/core/supabase/repository/chat_repository.dart';
 import 'package:flutter_chat/core/supabase/repository/supabase_repository.dart';
+import 'package:flutter_chat/core/supabase/service/supabase_service.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:record/record.dart';
@@ -54,10 +56,12 @@ class ChatViewModel extends _$ChatViewModel {
     state = const AsyncValue.loading();
 
     try {
-      final file = File(pickedFile.path);
-      await _repository.sendImageMessage(chatId, file);
+      final userId = supabase.auth.currentUser!.id;
+      final attachment = await ref.read(fileUploadServiceProvider).uploadImage(pickedFile, chatId, userId);
+      await _repository.sendImageMessage(chatId, attachment, pickedFile.name);
       state = const AsyncValue.data(null);
     } catch (e, st) {
+      log('sendImageMessage:$e $st');
       state = AsyncValue.error(e, st);
     }
   }

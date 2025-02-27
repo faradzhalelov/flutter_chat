@@ -23,7 +23,6 @@ class FileUploadService {
   
   FileUploadService(this._supabaseClient, this._localDb);
   final SupabaseClient _supabaseClient;
-
   final LocalDatabase _localDb;
   
   // Get correct bucket name based on file type
@@ -58,14 +57,21 @@ class FileUploadService {
   Future<String?> uploadFileToSupabase(File file, FileType type, String chatId) async {
     try {
       final String bucketName = _getBucketName(type);
+      final String userId = _supabaseClient.auth.currentUser?.id ?? 'anonymous';
       final String fileName = '${const Uuid().v4()}${path.extension(file.path)}';
-      final String filePath = '$chatId/$fileName';
+      // Include userId in the path to help with RLS policies
+      final String filePath = '$userId/$chatId/$fileName';
       
       // Upload to Supabase storage
-      final response = await _supabaseClient
+       await _supabaseClient
           .storage
           .from(bucketName)
-          .upload(filePath, file);
+          .upload(filePath, file, 
+            fileOptions: const FileOptions(
+             // cacheControl: '3600',
+              upsert: true,
+            ),
+          );
       
       // Get public URL
       final String publicUrl = _supabaseClient
@@ -76,7 +82,8 @@ class FileUploadService {
       return publicUrl;
     } catch (e) {
       debugPrint('Error uploading file: $e');
-      return null;
+      // Throw a more descriptive error for debugging
+      throw Exception('Storage upload failed: $e');
     }
   }
   
@@ -162,7 +169,7 @@ class FileUploadService {
     required String messageType, required String attachmentUrl, required String attachmentName, required DateTime createdAt, required bool isRead, String? content,
   }) async {
     await _localDb.saveMessage(
-      MessagesCompanion.insert(
+       MessagesCompanion.insert(
         id: id,
         chatId: chatId,
         userId: userId,
@@ -184,14 +191,14 @@ class FileUploadService {
     final fileName = path.basename(imageFile.path);
     
     // Save locally first
-    final localPath = await saveFileLocally(file, FileType.image, fileName);
+    await saveFileLocally(file, FileType.image, fileName);
     
     // Upload to Supabase
     final attachmentUrl = await uploadFileToSupabase(file, FileType.image, chatId);
     
     if (attachmentUrl != null) {
       // Save message with attachment
-      final messageId = await saveMessageWithAttachment(
+      await saveMessageWithAttachment(
         chatId: chatId,
         userId: userId,
         fileType: FileType.image,
@@ -200,7 +207,7 @@ class FileUploadService {
         content: caption,
       );
       
-      return messageId;
+      return attachmentUrl;
     }
     
     return null;
@@ -211,7 +218,7 @@ class FileUploadService {
     final fileName = path.basename(videoFile.path);
     
     // Save locally first
-    final localPath = await saveFileLocally(videoFile, FileType.video, fileName);
+    await saveFileLocally(videoFile, FileType.video, fileName);
     
     // Upload to Supabase
     final attachmentUrl = await uploadFileToSupabase(videoFile, FileType.video, chatId);
@@ -239,7 +246,7 @@ class FileUploadService {
     final fileName = path.basename(audioPath);
     
     // Save locally first
-    final localPath = await saveFileLocally(file, FileType.audio, fileName);
+    await saveFileLocally(file, FileType.audio, fileName);
     
     // Upload to Supabase
     final attachmentUrl = await uploadFileToSupabase(file, FileType.audio, chatId);
@@ -266,7 +273,7 @@ class FileUploadService {
     final fileName = pickedFile.name;
     
     // Save locally first
-    final localPath = await saveFileLocally(file, FileType.file, fileName);
+    await saveFileLocally(file, FileType.file, fileName);
     
     // Upload to Supabase
     final attachmentUrl = await uploadFileToSupabase(file, FileType.file, chatId);
