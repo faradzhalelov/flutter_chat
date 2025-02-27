@@ -18,6 +18,7 @@ class ChatListView extends HookConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    // Watch the chat list view model
     final chatListState = ref.watch(chatListViewModelProvider);
     final viewModel = ref.watch(chatListViewModelProvider.notifier);
     
@@ -26,14 +27,21 @@ class ChatListView extends HookConsumerWidget {
     final searchFocusNode = useFocusNode();
     final isSearching = useState(false);
     
-    // Handle search functionality
+    // Handle search functionality with memoization to avoid unnecessary rebuilds
     final filteredChats = useMemoized(() {
       if (!chatListState.hasValue || searchController.text.isEmpty) {
         return chatListState;
       }
       
       final query = searchController.text.toLowerCase();
-      final filteredList = chatListState.value!.where((chat) => chat.user.username.toLowerCase().contains(query)).toList();
+      
+      // Filter by both username and last message content
+      final filteredList = chatListState.value!.where((chat) {
+        final usernameMatch = chat.user.username.toLowerCase().contains(query);
+        final lastMessageMatch = chat.lastMessage?.text?.toLowerCase().contains(query) ?? false;
+        
+        return usernameMatch || lastMessageMatch;
+      }).toList();
       
       return AsyncValue.data(filteredList);
     }, [chatListState, searchController.text],);
@@ -51,12 +59,23 @@ class ChatListView extends HookConsumerWidget {
       };
     }, [searchController],);
 
+    // Refresh effect - ensures the chat list is up to date when component mounts
+    useEffect(() {
+      // Force a refresh when the component first loads
+      // This helps with the issue of chats not showing immediately
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        viewModel.refresh();
+      });
+      
+      return null;
+    }, [],);
+
     return Scaffold(
       backgroundColor: Colors.white,
       appBar: _buildAppBar(context, ref),
       floatingActionButton: FloatingActionButton(
         backgroundColor: AppColors.black,
-        onPressed: () async => _showCreateChatDialog(context, ref),
+        onPressed: () async => _showCreateChatDialog(context),
         tooltip: 'Создать чат',
         child: const Icon(
           Icomoon.plusS,
@@ -143,6 +162,8 @@ class ChatListView extends HookConsumerWidget {
             ),
             border: InputBorder.none,
           ),
+          textInputAction: TextInputAction.search,
+          onChanged: (_) {}, // Empty callback to ensure the state updates
         ),
       ),
     );
@@ -202,7 +223,7 @@ class ChatListView extends HookConsumerWidget {
       onRefresh: () => viewModel.refresh(),
       child: ListView.builder(
         itemCount: chats.length,
-       
+        
         itemBuilder: (context, index) {
           final chat = chats[index];
           return ChatListItem(
@@ -246,7 +267,8 @@ class ChatListView extends HookConsumerWidget {
             ElevatedButton(
               onPressed: () => viewModel.refresh(),
               style: ElevatedButton.styleFrom(
-                backgroundColor: AppColors.gray,
+                backgroundColor: AppColors.black,
+                foregroundColor: Colors.white,
               ),
               child: const Text('Повторить'),
             ),
@@ -277,13 +299,10 @@ class ChatListView extends HookConsumerWidget {
     );
   }
 
-  Future<void> _showCreateChatDialog(BuildContext context, WidgetRef ref) async => showDialog(
-    context: context,
-    builder: (dialogContext) => const CreateChatDialog(),
-  ).then((_) {
-    // This code runs after the dialog is closed
-    // We can use it to force refresh if needed
-    ref.invalidate(availableUsersProvider);
-  });
-  
+  Future<void> _showCreateChatDialog(
+    BuildContext context, 
+  ) async =>  showDialog(
+      context: context,
+      builder: (dialogContext) => const CreateChatDialog(),
+    );
 }

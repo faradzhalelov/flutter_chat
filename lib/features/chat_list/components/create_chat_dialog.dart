@@ -323,15 +323,12 @@ class CreateChatDialog extends HookConsumerWidget {
 
     try {
       // Use the view model to create the chat
-      final chatId =
+      
           await ref.read(chatListViewModelProvider.notifier).createChat(userId);
 
       if (context.mounted) {
         // Close dialog
         Navigator.of(context).pop();
-
-        // Navigate to the newly created chat
-        context.go('/chat/$chatId');
       }
     } catch (e) {
       log('Error creating chat: $e');

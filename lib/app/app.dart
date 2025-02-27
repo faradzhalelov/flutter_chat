@@ -7,7 +7,6 @@ import 'package:flutter_chat/app/theme/icons.dart';
 import 'package:flutter_chat/app/theme/text_styles.dart';
 import 'package:flutter_chat/app/theme/theme.dart';
 import 'package:flutter_chat/core/lifecycle/lifecycle.dart';
-import 'package:flutter_chat/features/auth/presentation/view/auth_wrapper.dart';
 // ignore: depend_on_referenced_packages
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -21,7 +20,6 @@ class MyApp extends ConsumerWidget {
     final router = ref.watch(appRouterProvider);
     
     return AppLifecycleManager(
-      child: AuthWrapper(
         child: ErrorHandler(
           child: MaterialApp.router(
             title: 'Flutter Messenger',
@@ -44,7 +42,6 @@ class MyApp extends ConsumerWidget {
             debugShowCheckedModeBanner: false,
           ),
         ),
-      ),
     );
   }
 }

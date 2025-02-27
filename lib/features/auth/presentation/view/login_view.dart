@@ -1,6 +1,5 @@
 // lib/features/auth/presentation/view/login_view.dart
 import 'package:flutter/material.dart';
-import 'package:flutter_chat/app/theme/colors.dart';
 import 'package:flutter_chat/app/theme/icons.dart';
 import 'package:flutter_chat/app/theme/text_styles.dart';
 import 'package:flutter_chat/core/utils/validators/validators.dart';
