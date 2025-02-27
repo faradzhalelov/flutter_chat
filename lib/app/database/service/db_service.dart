@@ -16,11 +16,11 @@ class SyncService {
   final LocalDatabase _localDb;
   final FileUploadService _fileUploadService;
   
-  StreamSubscription? _connectivitySubscription;
-  StreamSubscription? _messagesSubscription;
-  StreamSubscription? _chatsSubscription;
-  StreamSubscription? _chatMembersSubscription;
-  StreamSubscription? _usersSubscription;
+  StreamSubscription<List<ConnectivityResult>>? _connectivitySubscription;
+  StreamSubscription<List<Map<String, dynamic>>>? _messagesSubscription;
+  StreamSubscription<List<Map<String, dynamic>>>? _chatsSubscription;
+  StreamSubscription<List<Map<String, dynamic>>>? _chatMembersSubscription;
+  StreamSubscription<List<Map<String, dynamic>>>? _usersSubscription;
   
   bool _isSyncing = false;
   
@@ -358,7 +358,7 @@ class SyncService {
     }
     
     // Trigger sync if connected
-    syncData();
+    await syncData();
     
     return chatId;
   }
@@ -399,7 +399,7 @@ class SyncService {
   }
   
   // Update user online status
-  Future<void> updateUserOnlineStatus(String userId, bool isOnline) async {
+  Future<void> updateUserOnlineStatus(String userId, {required bool isOnline}) async {
     try {
       final now = DateTime.now();
       

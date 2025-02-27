@@ -1,4 +1,3 @@
-import 'dart:developer';
 
 import 'package:collection/collection.dart';
 import 'package:flutter/material.dart';
@@ -9,9 +8,7 @@ import 'package:flutter_chat/core/supabase/repository/supabase_repository.dart';
 import 'package:flutter_chat/features/chat/components/message/date_separator.dart';
 import 'package:flutter_chat/features/chat/components/message/message_bubble.dart';
 import 'package:flutter_chat/features/chat/components/message/message_input.dart';
-import 'package:flutter_chat/features/chat/data/models/chat.dart';
 import 'package:flutter_chat/features/chat/data/models/message.dart';
-import 'package:flutter_chat/features/chat/data/models/user.dart';
 // import 'package:flutter_chat/features/chat/presentation/view_model/chat_view_model.dart';
 import 'package:flutter_chat/features/common/widgets/user_avatar.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';

@@ -6,7 +6,8 @@ part 'daos.g.dart';
 // Users DAO
 @DriftAccessor(tables: [Users])
 class UsersDao extends DatabaseAccessor<LocalDatabase> with _$UsersDaoMixin {
-  UsersDao(LocalDatabase db,) : super(db);
+UsersDao(super.db);
+
 
   Future<List<User>> getAllUsers() => select(users).get();
   
@@ -29,7 +30,7 @@ class UsersDao extends DatabaseAccessor<LocalDatabase> with _$UsersDaoMixin {
 // Chats DAO
 @DriftAccessor(tables: [Chats, ChatMembers, Users])
 class ChatsDao extends DatabaseAccessor<LocalDatabase> with _$ChatsDaoMixin {
-  ChatsDao(LocalDatabase db) : super(db);
+  ChatsDao(super.db);
 
   Stream<List<Chat>> watchChatsForUser(String userId) {
     final query = select(chats)
@@ -78,7 +79,7 @@ class ChatsDao extends DatabaseAccessor<LocalDatabase> with _$ChatsDaoMixin {
 // Messages DAO
 @DriftAccessor(tables: [Messages])
 class MessagesDao extends DatabaseAccessor<LocalDatabase> with _$MessagesDaoMixin {
-  MessagesDao(LocalDatabase db) : super(db);
+  MessagesDao(super.db);
 
   Stream<List<Message>> watchMessagesForChat(String chatId) => 
       (select(messages)

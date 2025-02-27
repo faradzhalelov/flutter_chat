@@ -11,19 +11,18 @@ import 'package:flutter_chat/core/lifecycle/lifecycle.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-/// The main application widget that configures theme, localization, and routing.
 class MyApp extends ConsumerWidget {
   const MyApp({super.key});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final router = ref.watch(appRouterProvider);
-    
+    final theme = ref.watch(currentThemeProvider);
     return AppLifecycleManager(
         child: ErrorHandler(
           child: MaterialApp.router(
             title: 'Flutter Messenger',
-            theme: AppTheme.theme,
+            theme: theme,
             // Set up router configuration
             routerConfig: router,
             // Set up localization

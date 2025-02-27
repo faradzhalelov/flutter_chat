@@ -4,7 +4,6 @@ import 'dart:developer';
 import 'package:flutter/material.dart';
 import 'package:flutter_chat/app/theme/icons.dart';
 import 'package:flutter_chat/app/theme/text_styles.dart';
-import 'package:flutter_chat/core/auth/service/auth_service.dart';
 import 'package:flutter_chat/features/auth/presentation/view/login_view.dart';
 import 'package:flutter_chat/features/auth/presentation/view/register_view.dart';
 import 'package:flutter_chat/features/chat/presentation/view/chat_view.dart';
@@ -71,40 +70,7 @@ GoRouter appRouter(Ref ref) => GoRouter(
 @riverpod
 GlobalKey<NavigatorState> routerKey(Ref ref) => GlobalKey<NavigatorState>();
 
-/// Provider for navigating programmatically from anywhere
-@riverpod
-AppNavigator appNavigator(Ref ref) => AppNavigator(ref);
 
-/// Helper class for navigation from anywhere in the app
-class AppNavigator {
-  AppNavigator(this._ref);
-
-  final Ref _ref;
-
-  /// Get the GoRouter instance
-  GoRouter get _router => _ref.read(appRouterProvider);
-
-  /// Navigate to home screen
-  void goToHome() => _router.go('/');
-
-  /// Navigate to login screen
-  void goToLogin() => _router.pushReplacement('/${LoginView.routePath}');
-
-  /// Navigate to register screen
-  void goToRegister() => _router.go('/${RegisterView.routePath}');
-
-  /// Navigate to chat screen
-  void goToChat(String chatId) => _router.go('/${ChatView.routePath}/$chatId');
-
-  /// Navigate to profile screen
-  void goToProfile() => _router.go('/${ProfileView.routePath}');
-
-  /// Navigate to splash screen
-  void goToSplash() => _router.go('/${SplashView.routePath}');
-
-  /// Go back to previous screen
-  void goBack() => _router.pop();
-}
 
 class MyNavigatorObserver extends NavigatorObserver {
   @override

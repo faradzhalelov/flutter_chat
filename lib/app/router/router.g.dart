@@ -43,23 +43,5 @@ final routerKeyProvider =
 @Deprecated('Will be removed in 3.0. Use Ref instead')
 // ignore: unused_element
 typedef RouterKeyRef = AutoDisposeProviderRef<GlobalKey<NavigatorState>>;
-String _$appNavigatorHash() => r'94c16f17814c41fc31e7324295b1afe20be6894e';
-
-/// Provider for navigating programmatically from anywhere
-///
-/// Copied from [appNavigator].
-@ProviderFor(appNavigator)
-final appNavigatorProvider = AutoDisposeProvider<AppNavigator>.internal(
-  appNavigator,
-  name: r'appNavigatorProvider',
-  debugGetCreateSourceHash:
-      const bool.fromEnvironment('dart.vm.product') ? null : _$appNavigatorHash,
-  dependencies: null,
-  allTransitiveDependencies: null,
-);
-
-@Deprecated('Will be removed in 3.0. Use Ref instead')
-// ignore: unused_element
-typedef AppNavigatorRef = AutoDisposeProviderRef<AppNavigator>;
 // ignore_for_file: type=lint
 // ignore_for_file: subtype_of_sealed_class, invalid_use_of_internal_member, invalid_use_of_visible_for_testing_member, deprecated_member_use_from_same_package
