@@ -10,7 +10,6 @@ import 'package:flutter_chat/core/supabase/service/supabase_service.dart';
 import 'package:flutter_chat/features/chat/data/models/user.dart';
 import 'package:flutter_chat/features/chat_list/presentation/view_model/chat_list_view_model.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
-import 'package:go_router/go_router.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 
 // Provider to fetch users that don't have active chats with the current user
@@ -322,10 +321,7 @@ class CreateChatDialog extends HookConsumerWidget {
     isLoading.value = true;
 
     try {
-      // Use the view model to create the chat
-      
           await ref.read(chatListViewModelProvider.notifier).createChat(userId);
-
       if (context.mounted) {
         // Close dialog
         Navigator.of(context).pop();

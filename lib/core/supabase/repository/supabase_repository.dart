@@ -197,43 +197,36 @@ Future<List<ChatModel>> getChatsForCurrentUser() async {
   Future<String> createChat(String otherUserId) async {
     try {
       final userId = _currentUserId;
-      
+
       // Check if a chat already exists between these users
       final existingChat = await _findExistingChat(userId, otherUserId);
       if (existingChat != null) return existingChat;
-      
+
       // Create a new chat
       final chatResponse = await supabase
-        .from('chats')
-        .insert({
-          'created_at': DateTime.now().toIso8601String(),
-          'last_message_at': DateTime.now().toIso8601String(),
-        })
-        .select()
-        .single();
-      
+          .from('chats')
+          .insert({
+            'created_at': DateTime.now().toUtc().toIso8601String(),
+          })
+          .select()
+          .single();
+
       final chatId = chatResponse['id'] as String;
-      
+
       // Add both users to the chat (this should trigger the stream)
       await supabase.from('chat_members').insert([
         {'chat_id': chatId, 'user_id': userId},
         {'chat_id': chatId, 'user_id': otherUserId},
       ]);
-      
       // To be extra sure, send a dummy update to the chat
       await Future.delayed(const Duration(milliseconds: 100), () {});
-      await supabase
-        .from('chats')
-        .update({
-          'last_message_at': DateTime.now().toIso8601String(),
-        })
-        .eq('id', chatId);
-      
+      await supabase.from('chats').update({}).eq('id', chatId);
       return chatId;
     } catch (e) {
       throw _handleError(e);
     }
   }
+
   
   /// Helper method to find an existing chat between two users
   Future<String?> _findExistingChat(String userId, String otherUserId) async {
@@ -542,9 +535,7 @@ final chatRepositoryProvider = Provider<ChatRepository>((ref) => SupabaseChatRep
 /// Stream provider for chat list
 final chatListStreamProvider = StreamProvider<List<ChatModel>>((ref) {
   final repository = ref.watch(chatRepositoryProvider);
-  
-  // This will immediately connect to the stream and refresh when needed
-  return repository.getChatsForCurrentUserStream();
+    return repository.getChatsForCurrentUserStream();
 });
 
 /// Stream provider for messages in a specific chat

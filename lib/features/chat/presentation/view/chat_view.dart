@@ -1,3 +1,6 @@
+import 'dart:developer';
+
+import 'package:collection/collection.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_chat/app/theme/colors.dart';
 import 'package:flutter_chat/app/theme/icons.dart';
@@ -55,26 +58,17 @@ class _ChatViewState extends ConsumerState<ChatView> {
   Widget build(BuildContext context) {
     final messagesStream = ref.watch(chatMessagesProvider(widget.chatId));
     // final chatViewModel = ref.watch(chatViewModelProvider(widget.chatId));
-
     // Get chat details to show user info in app bar
-    final chatsStream = ref.watch(chatListStreamProvider);
-    final chat = chatsStream.valueOrNull?.firstWhere(
+    final chatsStream = ref.watch(chatListStreamProvider).asData?.value ?? [];
+
+    final chat = chatsStream.firstWhereOrNull(
       (c) => c.id == widget.chatId,
-      orElse: () => ChatModel(
-          id: 'chat_id',
-          user: UserModel(
-              id: 'id',
-              email: 'email',
-              username: 'username',
-              createdAt: DateTime.now(),),
-          createdAt: DateTime.now(),),
     );
     return Scaffold(
       backgroundColor: AppColors.appBackground,
       appBar: AppBar(
         backgroundColor: AppColors.appBackground,
         foregroundColor: AppColors.appBackground,
-        
         leading: IconButton(
           icon: const Icon(Icomoon.arrowLeftS, color: AppColors.black),
           onPressed: () => context.go('/'),
@@ -94,15 +88,15 @@ class _ChatViewState extends ConsumerState<ChatView> {
                     children: [
                       Text(
                         chat.user.username,
-                        style:  AppTextStyles.smallSemiBold.copyWith(
-
+                        style: AppTextStyles.smallSemiBold.copyWith(
                           color: Colors.black,
                         ),
                       ),
                       Text(
-                        chat.user.isOnline ? 'В сети' : 'Не в сети', // Online status
-                        style:  AppTextStyles.extraSmall.copyWith(
-
+                        chat.user.isOnline
+                            ? 'В сети'
+                            : 'Не в сети', // Online status
+                        style: AppTextStyles.extraSmall.copyWith(
                           color: AppColors.darkGray,
                         ),
                       ),
@@ -114,73 +108,72 @@ class _ChatViewState extends ConsumerState<ChatView> {
       ),
       body: DecoratedBox(
         decoration: const BoxDecoration(
-          border: Border(top: BorderSide(color: AppColors.divider))
-        ),
+            border: Border(top: BorderSide(color: AppColors.divider))),
         child: Column(
           children: [
-            
             // Messages list
             Expanded(
-              child: messagesStream.when(
+              child:  messagesStream.when(
                 data: (messages) {
                   if (messages.isEmpty) {
                     return Center(
                       child: Text(
                         'Пока нет сообщений',
-                        style: AppTextStyles.small.copyWith(                          color: Colors.grey.shade500,
-),
-                        
+                        style: AppTextStyles.small.copyWith(
+                          color: Colors.grey.shade500,
+                        ),
                       ),
                     );
                   }
-        
+
                   // Group messages by date
                   final groupedMessages = <DateTime, List<MessageModel>>{};
-        
+
                   for (final message in messages) {
                     final date = DateTime(
                       message.createdAt.year,
                       message.createdAt.month,
                       message.createdAt.day,
                     );
-        
+
                     if (!groupedMessages.containsKey(date)) {
                       groupedMessages[date] = [];
                     }
-        
+
                     groupedMessages[date]!.add(message);
                   }
-        
+
                   // Flatten grouped messages with date separators
                   final flatList = <dynamic>[];
-        
+
                   // Sort dates in ascending order
                   final sortedDates = groupedMessages.keys.toList()
                     ..sort((a, b) => a.compareTo(b));
-        
+
                   for (final date in sortedDates) {
-                    final sortedGroupMessages = groupedMessages[date]!..sort((a,b) => a.createdAt.compareTo(b.createdAt));
+                    final sortedGroupMessages = groupedMessages[date]!
+                      ..sort((a, b) => a.createdAt.compareTo(b.createdAt));
                     flatList.add(date); // Date separator
                     flatList.addAll(sortedGroupMessages);
                   }
-        
+
                   // Scroll to bottom on new messages
                   WidgetsBinding.instance.addPostFrameCallback((_) {
                     _scrollToBottom();
                   });
-        
+
                   return ListView.builder(
                     controller: _scrollController,
                     padding: const EdgeInsets.all(8.0),
                     itemCount: flatList.length,
                     itemBuilder: (context, index) {
                       final item = flatList[index];
-        
+
                       if (item is DateTime) {
                         return DateSeparator(date: item);
                       } else {
                         final message = item;
-        
+
                         // Determine if we should show message "tail"
                         bool showTail = true;
                         if (index < flatList.length - 1 &&
@@ -196,7 +189,7 @@ class _ChatViewState extends ConsumerState<ChatView> {
                             showTail = false;
                           }
                         }
-        
+
                         return MessageBubble(
                           message: message as MessageModel,
                           showTail: showTail,
@@ -241,7 +234,7 @@ class _ChatViewState extends ConsumerState<ChatView> {
                 ),
               ),
             ),
-        
+
             // Message input
             MessageInput(chatId: widget.chatId),
           ],

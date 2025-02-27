@@ -229,7 +229,6 @@ class DriftChatRepository implements ChatRepository {
           .from('chats')
           .insert({
             'created_at': DateTime.now().toIso8601String(),
-            'last_message_at': DateTime.now().toIso8601String(),
           })
           .select()
           .single();

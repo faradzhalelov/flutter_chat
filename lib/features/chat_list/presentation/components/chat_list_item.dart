@@ -1,3 +1,5 @@
+import 'dart:developer';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_chat/app/theme/colors.dart';
 import 'package:flutter_chat/app/theme/icons.dart';
@@ -10,11 +12,12 @@ import 'package:flutter_chat/features/chat/data/models/message.dart';
 import 'package:flutter_chat/features/common/widgets/user_avatar.dart';
 import 'package:intl/intl.dart';
 
-
 class ChatListItem extends StatelessWidget {
-
   const ChatListItem({
-    required this.chat, required this.onTap, required this.onDismissed, super.key,
+    required this.chat,
+    required this.onTap,
+    required this.onDismissed,
+    super.key,
   });
   final ChatModel chat;
   final VoidCallback onTap;
@@ -23,13 +26,14 @@ class ChatListItem extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final lastMessage = chat.lastMessage;
-    final hasUnread = lastMessage != null && !lastMessage.isMe && !lastMessage.isRead;
-    
+    final hasUnread =
+        lastMessage != null && !lastMessage.isMe && !lastMessage.isRead;
+
     // Determine avatar color index based on the first letter of the name
-    final colorIndex = chat.user.username.isNotEmpty 
+    final colorIndex = chat.user.username.isNotEmpty
         ? chat.user.username.codeUnitAt(0) % 3
         : 0;
-    
+
     return Dismissible(
       key: Key('chat_${chat.id}'),
       direction: DismissDirection.endToStart,
@@ -52,7 +56,7 @@ class ChatListItem extends StatelessWidget {
               border: Border(bottom: BorderSide(color: AppColors.divider)),
             ),
             child: Padding(
-          padding: const EdgeInsets.symmetric(vertical: 10),
+              padding: const EdgeInsets.symmetric(vertical: 10),
               child: Row(
                 children: [
                   // Avatar
@@ -60,10 +64,10 @@ class ChatListItem extends StatelessWidget {
                     userName: chat.user.username,
                     avatarUrl: chat.user.avatarUrl,
                     colorIndex: colorIndex,
-                    size: 48,
+                    size: 50,
                   ),
                   const SizedBox(width: 12),
-                  
+
                   // Chat info
                   Expanded(
                     child: Column(
@@ -75,21 +79,20 @@ class ChatListItem extends StatelessWidget {
                           children: [
                             Text(
                               chat.user.username,
-                              style: AppTextStyles.medium.copyWith(                                fontWeight: hasUnread ? FontWeight.bold : FontWeight.normal,
-),
-                            
+                              style: AppTextStyles.medium.copyWith(
+                                color: Colors.black,
+                              ),
                             ),
                             Text(
                               _formatTime(chat.lastMessageTime),
-                              style: AppTextStyles.small.copyWith(                                color: Colors.grey.shade500,
-),
-                              
-                            
+                              style: AppTextStyles.small.copyWith(
+                                color: AppColors.darkGray,
+                              ),
                             ),
                           ],
                         ),
                         const SizedBox(height: 4),
-                        
+
                         // Message preview
                         Row(
                           children: [
@@ -98,20 +101,15 @@ class ChatListItem extends StatelessWidget {
                                 padding: const EdgeInsets.only(right: 4),
                                 child: Text(
                                   'Вы: ',
-                                  style: TextStyle(
-                                    fontSize: 14,
-                                    color: Colors.grey.shade600,
-                                  ),
+                                  style: AppTextStyles.extraSmall
+                                      .copyWith(color: AppColors.black),
                                 ),
                               ),
                             Expanded(
                               child: Text(
                                 _getMessagePreview(lastMessage),
-                                style: TextStyle(
-                                  fontSize: 14,
-                                  color: hasUnread ? Colors.black : Colors.grey.shade600,
-                                  fontWeight: hasUnread ? FontWeight.bold : FontWeight.normal,
-                                ),
+                                style: AppTextStyles.extraSmall
+                                    .copyWith(color: AppColors.darkGray),
                                 maxLines: 1,
                                 overflow: TextOverflow.ellipsis,
                               ),
@@ -139,17 +137,17 @@ class ChatListItem extends StatelessWidget {
       ),
     );
   }
-  
+
   String _getMessagePreview(MessageModel? message) {
     if (message == null) {
       return '';
     }
-    
+
     // For text messages
     if (message.text != null && message.text!.isNotEmpty) {
       return message.text!;
     }
-    
+
     // For attachments
     switch (message.messageType) {
       case AttachmentType.image:
@@ -164,23 +162,60 @@ class ChatListItem extends StatelessWidget {
         return '';
     }
   }
-  
+
   String _formatTime(DateTime? time) {
     if (time == null) return '';
-    
-    final now = DateTime.now();
-    
-    if (time.isToday()) {
+
+    final now = DateTime.now().toUtc();
+    final difference = time.difference(now);
+    // For very recent times (less than 1 hour ago)
+    if (difference.inHours < 1) {
+      final minutes = difference.inMinutes;
+
+      if (minutes < 1) {
+        return 'Только что';
+      } else {
+        return '$minutes ${_minutesDeclension(minutes)} назад';
+      }
+    }
+    // For today
+    else if (time.isToday()) {
       // Format as time only (e.g., "09:41")
       return DateFormat.Hm().format(time);
-    } else if (time.isYesterday()) {
+    }
+    // For yesterday
+    else if (time.isYesterday()) {
       return 'Вчера';
-    } else if (now.difference(time).inDays < 7) {
+    }
+    // For this week (less than 7 days ago)
+    else if (difference.inDays < 7) {
       // For short time labels we don't need full day name
       return '${time.day}.${time.month.toString().padLeft(2, '0')}';
-    } else {
+    }
+    // For older dates
+    else {
       // Format as date (e.g., "12.01.22")
       return DateFormat('dd.MM.yy').format(time);
+    }
+  }
+
+// Helper function for proper Russian declension of minutes
+  String _minutesDeclension(int minutes) {
+    // Handle exceptions for numbers ending with 11-14
+    if (minutes % 100 >= 11 && minutes % 100 <= 14) {
+      return 'минут';
+    }
+
+    // Handle other cases based on last digit
+    switch (minutes % 10) {
+      case 1:
+        return 'минута';
+      case 2:
+      case 3:
+      case 4:
+        return 'минуты';
+      default:
+        return 'минут';
     }
   }
 }

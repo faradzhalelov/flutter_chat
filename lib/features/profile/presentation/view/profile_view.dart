@@ -238,7 +238,7 @@ class _ProfileViewState extends ConsumerState<ProfileView> {
 
                 // Update button
                 AuthButton(
-                  text: 'Обновить профиль',
+                  text: ' Обновить профиль ',
                   onPressed: _updateProfile,
                   isLoading: _isLoading,
                 ),
