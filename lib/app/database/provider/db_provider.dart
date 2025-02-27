@@ -3,8 +3,8 @@ import 'package:flutter_chat/app/database/db/database.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 
-final databaseProvider = Provider<AppDatabase>((ref) {
-  final database = AppDatabase();
+final databaseProvider = Provider<LocalDatabase>((ref) {
+  final database = LocalDatabase();
   ref.onDispose(() => database.close());
   return database;
 });

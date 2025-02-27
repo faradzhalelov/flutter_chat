@@ -1,12 +1,13 @@
 // lib/core/repository/drift_chat_repository.dart
 import 'dart:developer';
 import 'dart:io';
-import 'package:drift/drift.dart';
+
+import 'package:file_picker/file_picker.dart';
 import 'package:flutter_chat/app/database/dao/daos.dart';
-import 'package:flutter_chat/app/database/db/database.dart';
 import 'package:flutter_chat/app/database/provider/db_provider.dart';
 import 'package:flutter_chat/app/database/service/db_service.dart';
 import 'package:flutter_chat/core/supabase/repository/chat_repository.dart';
+import 'package:flutter_chat/core/supabase/service/file_upload_service.dart';
 import 'package:flutter_chat/core/supabase/service/supabase_service.dart';
 import 'package:flutter_chat/features/chat/data/models/atachment_type.dart';
 import 'package:flutter_chat/features/chat/data/models/chat.dart';
@@ -14,16 +15,23 @@ import 'package:flutter_chat/features/chat/data/models/chat_member.dart';
 import 'package:flutter_chat/features/chat/data/models/message.dart';
 import 'package:flutter_chat/features/chat/data/models/user.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:image_picker/image_picker.dart';
 import 'package:path/path.dart' as path;
 import 'package:uuid/uuid.dart';
 
 class DriftChatRepository implements ChatRepository {
   DriftChatRepository(
-      this._usersDao, this._chatsDao, this._messagesDao, this._syncService);
+      this._usersDao, 
+      this._chatsDao, 
+      this._messagesDao, 
+      this._syncService,
+      this._fileUploadService,);
+      
   final UsersDao _usersDao;
   final ChatsDao _chatsDao;
   final MessagesDao _messagesDao;
   final SyncService _syncService;
+  final FileUploadService _fileUploadService; // Added FileUploadService
 
   String get _currentUserId {
     final userId = supabase.auth.currentUser?.id;
@@ -36,7 +44,7 @@ class DriftChatRepository implements ChatRepository {
     final userId = _currentUserId;
 
     // Ensure we're synced first
-    _syncService.syncChats(userId);
+    _syncService.syncData();
 
     return _chatsDao.watchChatsForUser(userId).asyncMap((chats) async {
       final result = <ChatModel>[];
@@ -92,7 +100,7 @@ class DriftChatRepository implements ChatRepository {
           lastMessageTime: chat.lastMessageAt,
           user: userModel,
           lastMessage: lastMessageModel,
-        ));
+        ),);
       }
 
       // Sort by last message date
@@ -115,7 +123,7 @@ class DriftChatRepository implements ChatRepository {
     final userId = _currentUserId;
 
     // Force sync with Supabase first
-    await _syncService.syncChats(userId);
+    await _syncService.syncData();
 
     // Then get from local DB (same logic as stream)
     final chats = await _chatsDao.watchChatsForUser(userId).first;
@@ -172,11 +180,11 @@ class DriftChatRepository implements ChatRepository {
         lastMessageTime: chat.lastMessageAt,
         user: userModel,
         lastMessage: lastMessageModel,
-      ));
+      ),);
     }
 
     // Sort by last message date
-  result.sort((a, b) {
+    result.sort((a, b) {
         final bTime = b.lastMessageTime;
         final aTime = a.lastMessageTime;
         if (bTime != null && aTime != null) {
@@ -192,8 +200,8 @@ class DriftChatRepository implements ChatRepository {
   Future<List<MessageModel>> getMessagesForChat(String chatId) async {
     final userId = _currentUserId;
 
-    // Sync messages for this chat
-    await _syncService.syncMessagesForChat(chatId);
+    // Sync messages for this chat 
+    await _syncService.syncData();
 
     // Get messages from local DB
     final messages = await _messagesDao.watchMessagesForChat(chatId).first;
@@ -211,7 +219,7 @@ class DriftChatRepository implements ChatRepository {
               updatedAt: message.updatedAt,
               isRead: message.isRead,
               isMe: message.userId == userId,
-            ))
+            ),)
         .toList();
   }
 
@@ -224,61 +232,8 @@ class DriftChatRepository implements ChatRepository {
       final existingChat = await _findExistingChat(userId, otherUserId);
       if (existingChat != null) return existingChat;
 
-      // Create a new chat in Supabase
-      final chatResponse = await supabase
-          .from('chats')
-          .insert({
-            'created_at': DateTime.now().toIso8601String(),
-          })
-          .select()
-          .single();
-
-      final chatId = chatResponse['id'] as String;
-
-      // Add both users to the chat in Supabase
-      await supabase.from('chat_members').insert([
-        {'chat_id': chatId, 'user_id': userId},
-        {'chat_id': chatId, 'user_id': otherUserId},
-      ]);
-
-      // Now sync this chat to the local database
-      await _syncService.syncChatMembers(chatId);
-
-      // Create local chat entry
-      await _chatsDao.insertChat(
-        ChatsTableCompanion.insert(
-          id: chatId,
-          createdAt: Value(DateTime.now()),
-          lastMessageAt: Value(DateTime.now()),
-        ),
-      );
-
-      // Add both users as members in local DB
-      final memberIdCurrent = const Uuid().v4();
-      final memberIdOther = const Uuid().v4();
-
-      await _chatsDao.addChatMember(
-        ChatMembersTableCompanion.insert(
-          id: memberIdCurrent,
-          chatId: chatId,
-          userId: userId,
-          createdAt: Value(DateTime.now()),
-        ),
-      );
-
-      await _chatsDao.addChatMember(
-        ChatMembersTableCompanion.insert(
-          id: memberIdOther,
-          chatId: chatId,
-          userId: otherUserId,
-          createdAt: Value(DateTime.now()),
-        ),
-      );
-
-      // Make sure other user is in local DB
-      await _syncService.syncUserById(otherUserId);
-
-      return chatId;
+      // Use SyncService to create the chat
+      return await _syncService.createNewChat(memberIds: [userId, otherUserId]);
     } catch (e) {
       throw Exception('Failed to create chat: $e');
     }
@@ -329,7 +284,7 @@ class DriftChatRepository implements ChatRepository {
       final membersCount = membersCountResponse.length;
       if (membersCount == 2) {
         // Sync this chat to local DB since it exists in Supabase but not locally
-        await _syncService.syncChatMembers(chatId);
+        await _syncService.syncData();
         return chatId;
       }
 
@@ -345,39 +300,15 @@ class DriftChatRepository implements ChatRepository {
     try {
       final userId = _currentUserId;
 
-      // Create message data
-      final messageId = const Uuid().v4();
-      final now = DateTime.now();
-
-      // Create message locally first
-      final messageData = MessagesTableCompanion.insert(
-        id: messageId,
+      // Use SyncService to create the message
+      final messageId = await _syncService.createLocalTextMessage(
         chatId: chatId,
         userId: userId,
-        content: Value(text),
-        messageType: 'text',
-        createdAt: Value(now),
-        updatedAt: Value(now),
-        isRead: const Value(false),
-        isSynced: const Value(false), // Will be synced to Supabase
+        content: text,
       );
-
-      // Insert locally
-      await _messagesDao.insertMessage(messageData);
-
-      // Update chat's last message time
-      await _chatsDao.updateChat(
-        ChatsTableCompanion(
-          id: Value(chatId),
-          lastMessageAt: Value(now),
-        ),
-      );
-
-      // Schedule sync to Supabase
-      _syncService.syncUnsentMessages();
 
       // Get the created message
-      final message = await (_messagesDao.select(_messagesDao.messagesTable)
+      final message = await (_messagesDao.select(_messagesDao.messages)
             ..where((m) => m.id.equals(messageId)))
           .getSingle();
 
@@ -401,130 +332,22 @@ class DriftChatRepository implements ChatRepository {
   @override
   Future<MessageModel> sendImageMessage(String chatId, File imageFile) async {
     try {
-      final attachment = await _uploadAttachment(imageFile, 'image');
-      return _sendAttachmentMessage(
-        chatId: chatId,
-        attachmentUrl: attachment.url,
-        attachmentName: attachment.name,
-        messageType: 'image',
-      );
-    } catch (e) {
-      throw Exception('Failed to send image message: $e');
-    }
-  }
-
-  @override
-  Future<MessageModel> sendVideoMessage(String chatId, File videoFile) async {
-    try {
-      final attachment = await _uploadAttachment(videoFile, 'video');
-      return _sendAttachmentMessage(
-        chatId: chatId,
-        attachmentUrl: attachment.url,
-        attachmentName: attachment.name,
-        messageType: 'video',
-      );
-    } catch (e) {
-      throw Exception('Failed to send video message: $e');
-    }
-  }
-
-  @override
-  Future<MessageModel> sendFileMessage(String chatId, File file) async {
-    try {
-      final attachment = await _uploadAttachment(file, 'file');
-      return _sendAttachmentMessage(
-        chatId: chatId,
-        attachmentUrl: attachment.url,
-        attachmentName: attachment.name,
-        messageType: 'file',
-      );
-    } catch (e) {
-      throw Exception('Failed to send file message: $e');
-    }
-  }
-
-  @override
-  Future<MessageModel> sendAudioMessage(String chatId, File audioFile) async {
-    try {
-      final attachment = await _uploadAttachment(audioFile, 'audio');
-      return _sendAttachmentMessage(
-        chatId: chatId,
-        attachmentUrl: attachment.url,
-        attachmentName: attachment.name,
-        messageType: 'audio',
-      );
-    } catch (e) {
-      throw Exception('Failed to send audio message: $e');
-    }
-  }
-
-  /// Helper method to upload attachments to Supabase storage
-  Future<({String url, String name})> _uploadAttachment(
-      File file, String type) async {
-    try {
       final userId = _currentUserId;
-
-      final fileName = path.basename(file.path);
-      final fileExt = path.extension(fileName);
-      final uuid = const Uuid().v4();
-      final storagePath = '$type/$userId/$uuid$fileExt';
-
-      await supabase.storage.from('attachments').upload(
-            storagePath,
-            file,
-          );
-
-      final url =
-          supabase.storage.from('attachments').getPublicUrl(storagePath);
-      return (url: url, name: fileName);
-    } catch (e) {
-      throw Exception('Failed to upload attachment: $e');
-    }
-  }
-
-  /// Helper method to send an attachment message
-  Future<MessageModel> _sendAttachmentMessage({
-    required String chatId,
-    required String attachmentUrl,
-    required String attachmentName,
-    required String messageType,
-  }) async {
-    try {
-      final userId = _currentUserId;
-      final messageId = const Uuid().v4();
-      final now = DateTime.now();
-
-      // Create message locally first
-      final messageData = MessagesTableCompanion.insert(
-        id: messageId,
-        chatId: chatId,
-        userId: userId,
-        content: const Value(null),
-        messageType: messageType,
-        attachmentUrl: Value(attachmentUrl),
-        attachmentName: Value(attachmentName),
-        createdAt: Value(now),
-        updatedAt: Value(now),
-        isRead: const Value(false),
-        isSynced: const Value(false), // Will be synced to Supabase
+      final xFile = XFile(imageFile.path);
+      
+      // Use FileUploadService to upload and create message
+      final messageId = await _fileUploadService.uploadImage(
+        xFile,
+        chatId,
+        userId,
       );
-
-      // Insert locally
-      await _messagesDao.insertMessage(messageData);
-
-      // Update chat's last message time
-      await _chatsDao.updateChat(
-        ChatsTableCompanion(
-          id: Value(chatId),
-          lastMessageAt: Value(now),
-        ),
-      );
-
-      // Schedule sync to Supabase
-      await _syncService.syncUnsentMessages();
+      
+      if (messageId == null) {
+        throw Exception('Failed to upload image');
+      }
 
       // Get the created message
-      final message = await (_messagesDao.select(_messagesDao.messagesTable)
+      final message = await (_messagesDao.select(_messagesDao.messages)
             ..where((m) => m.id.equals(messageId)))
           .getSingle();
 
@@ -543,7 +366,134 @@ class DriftChatRepository implements ChatRepository {
         isMe: true,
       );
     } catch (e) {
-      throw Exception('Failed to send attachment message: $e');
+      throw Exception('Failed to send image message: $e');
+    }
+  }
+
+  @override
+  Future<MessageModel> sendVideoMessage(String chatId, File videoFile) async {
+    try {
+      final userId = _currentUserId;
+      
+      // Use FileUploadService to upload and create message
+      final messageId = await _fileUploadService.uploadVideo(
+        videoFile,
+        chatId,
+        userId,
+      );
+      
+      if (messageId == null) {
+        throw Exception('Failed to upload video');
+      }
+
+      // Get the created message
+      final message = await (_messagesDao.select(_messagesDao.messages)
+            ..where((m) => m.id.equals(messageId)))
+          .getSingle();
+
+      // Return as model
+      return MessageModel(
+        id: message.id,
+        chatId: message.chatId,
+        userId: message.userId,
+        text: message.content,
+        messageType: AttachmentType.values.byName(message.messageType),
+        attachmentUrl: message.attachmentUrl,
+        attachmentName: message.attachmentName,
+        createdAt: message.createdAt,
+        updatedAt: message.updatedAt,
+        isRead: message.isRead,
+        isMe: true,
+      );
+    } catch (e) {
+      throw Exception('Failed to send video message: $e');
+    }
+  }
+
+  @override
+  Future<MessageModel> sendFileMessage(String chatId, File file) async {
+    try {
+      final userId = _currentUserId;
+      
+      // Create PlatformFile for FileUploadService
+      final platformFile = PlatformFile(
+        name: path.basename(file.path),
+        size: file.lengthSync(),
+        path: file.path,
+      );
+      
+      // Use FileUploadService to upload and create message
+      final messageId = await _fileUploadService.uploadFile(
+        platformFile,
+        chatId,
+        userId,
+      );
+      
+      if (messageId == null) {
+        throw Exception('Failed to upload file');
+      }
+
+      // Get the created message
+      final message = await (_messagesDao.select(_messagesDao.messages)
+            ..where((m) => m.id.equals(messageId)))
+          .getSingle();
+
+      // Return as model
+      return MessageModel(
+        id: message.id,
+        chatId: message.chatId,
+        userId: message.userId,
+        text: message.content,
+        messageType: AttachmentType.values.byName(message.messageType),
+        attachmentUrl: message.attachmentUrl,
+        attachmentName: message.attachmentName,
+        createdAt: message.createdAt,
+        updatedAt: message.updatedAt,
+        isRead: message.isRead,
+        isMe: true,
+      );
+    } catch (e) {
+      throw Exception('Failed to send file message: $e');
+    }
+  }
+
+  @override
+  Future<MessageModel> sendAudioMessage(String chatId, File audioFile) async {
+    try {
+      final userId = _currentUserId;
+      
+      // Use FileUploadService to upload and create message
+      final messageId = await _fileUploadService.uploadAudio(
+        audioFile.path,
+        chatId,
+        userId,
+      );
+      
+      if (messageId == null) {
+        throw Exception('Failed to upload audio');
+      }
+
+      // Get the created message
+      final message = await (_messagesDao.select(_messagesDao.messages)
+            ..where((m) => m.id.equals(messageId)))
+          .getSingle();
+
+      // Return as model
+      return MessageModel(
+        id: message.id,
+        chatId: message.chatId,
+        userId: message.userId,
+        text: message.content,
+        messageType: AttachmentType.values.byName(message.messageType),
+        attachmentUrl: message.attachmentUrl,
+        attachmentName: message.attachmentName,
+        createdAt: message.createdAt,
+        updatedAt: message.updatedAt,
+        isRead: message.isRead,
+        isMe: true,
+      );
+    } catch (e) {
+      throw Exception('Failed to send audio message: $e');
     }
   }
 
@@ -551,17 +501,9 @@ class DriftChatRepository implements ChatRepository {
   Future<void> markMessagesAsRead(String chatId) async {
     try {
       final userId = _currentUserId;
-
-      // Mark as read in local DB
-      await _messagesDao.markAllMessagesAsRead(chatId, userId);
-
-      // Also mark as read in Supabase
-      await supabase
-          .from('messages')
-          .update({'is_read': true})
-          .eq('chat_id', chatId)
-          .not('user_id', 'eq', userId)
-          .eq('is_read', false);
+      
+      // Use SyncService to mark messages as read
+      await _syncService.markAllMessagesAsRead(chatId, userId);
     } catch (e) {
       throw Exception('Failed to mark messages as read: $e');
     }
@@ -570,11 +512,8 @@ class DriftChatRepository implements ChatRepository {
   @override
   Future<void> deleteChat(String chatId) async {
     try {
-      // Delete from Supabase (will cascade to messages and members)
-      await supabase.from('chats').delete().eq('id', chatId);
-
-      // Delete from local database
-      await _chatsDao.deleteChat(chatId);
+      // Use SyncService to delete chat
+      await _syncService.deleteChat(chatId);
     } catch (e) {
       throw Exception('Failed to delete chat: $e');
     }
@@ -623,7 +562,7 @@ class DriftChatRepository implements ChatRepository {
   Future<List<ChatMemberModel>> getChatMembers(String chatId) async {
     try {
       // Sync members first
-      await _syncService.syncChatMembers(chatId);
+      await _syncService.syncData();
 
       // Now get from local DB
       final membersResponse = await _chatsDao.watchChatMembers(chatId).first;
@@ -631,8 +570,9 @@ class DriftChatRepository implements ChatRepository {
       return membersResponse.map((userData) => ChatMemberModel(
           id: const Uuid().v4(), // Generate a temporary ID
           chatId: chatId,
-           createdAt: userData.createdAt, userId: userData.id,
-        )).toList();
+          createdAt: userData.createdAt, 
+          userId: userData.id,
+        ),).toList();
     } catch (e) {
       throw Exception('Failed to get chat members: $e');
     }
@@ -641,8 +581,8 @@ class DriftChatRepository implements ChatRepository {
   @override
   Future<UserModel> getUserById(String userId) async {
     try {
-      // Sync user first
-      await _syncService.syncUserById(userId);
+      // Sync data
+      await _syncService.syncData();
 
       // Get from local DB
       final userData = await _usersDao.getUserById(userId);
@@ -672,9 +612,35 @@ final driftChatRepositoryProvider = Provider<ChatRepository>((ref) {
   final chatsDao = ref.watch(chatsDaoProvider);
   final messagesDao = ref.watch(messagesDaoProvider);
   final syncService = ref.watch(syncServiceProvider);
+  final fileUploadService = ref.watch(fileUploadServiceProvider);
 
-  return DriftChatRepository(usersDao, chatsDao, messagesDao, syncService);
+  return DriftChatRepository(
+    usersDao, 
+    chatsDao, 
+    messagesDao, 
+    syncService,
+    fileUploadService,
+  );
+});
+
+// Provider for the FileUploadService
+final fileUploadServiceProvider = Provider<FileUploadService>((ref) {
+  final supabaseClient = supabase;
+  final localDb = ref.watch(databaseProvider);
+  
+  return FileUploadService(supabaseClient, localDb);
+});
+
+// Provider for the SyncService
+final syncServiceProvider = Provider<SyncService>((ref) {
+  final supabaseClient = supabase;
+  final localDb = ref.watch(databaseProvider);
+  final fileUploadService = ref.watch(fileUploadServiceProvider);
+  
+  return SyncService(supabaseClient, localDb, fileUploadService);
 });
 
 // Update this provider to use the Drift implementation
-final dbRepositoryProvider = Provider<ChatRepository>((ref) => ref.watch(driftChatRepositoryProvider));
+final dbRepositoryProvider = Provider<ChatRepository>((ref) => 
+  ref.watch(driftChatRepositoryProvider),
+);
