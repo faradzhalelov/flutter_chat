@@ -2,6 +2,7 @@
 import 'dart:developer';
 import 'dart:io';
 import 'package:flutter/material.dart';
+import 'package:flutter_chat/features/chat/data/models/user.dart';
 import 'package:flutter_chat/features/common/splash_view.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
@@ -214,7 +215,7 @@ class AuthState extends _$AuthState {
 
 /// Provider for current user profile data
 @riverpod
-Future<Map<String, dynamic>> userProfile(Ref ref) async {
+Future<UserModel> userProfile(Ref ref) async {
   final user = ref.watch(currentUserProvider);
 
   if (user == null) {
@@ -228,7 +229,7 @@ Future<Map<String, dynamic>> userProfile(Ref ref) async {
         .eq('id', user.id)
         .single();
 
-    return response;
+    return UserModel.fromSupabase(response);
   } catch (e) {
     throw Exception('Failed to load user profile: $e');
   }

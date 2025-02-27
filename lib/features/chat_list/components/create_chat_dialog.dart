@@ -23,7 +23,7 @@ final availableUsersProvider =
     final response = await supabase
         .from('users')
         .select(
-            'id, username, email, created_at, last_seen, is_online, avatar_url')
+            'id, username, email, created_at, last_seen, is_online, avatar_url',)
         .neq('id', currentUser.id);
 
     final allUsers =

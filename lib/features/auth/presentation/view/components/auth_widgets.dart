@@ -55,7 +55,7 @@ class AuthButton extends StatelessWidget {
 class AuthTextField extends StatelessWidget {
 
   const AuthTextField({
-    required this.controller, required this.labelText, super.key,
+     required this.labelText, this.controller, super.key,
     this.hintText,
     this.prefixIcon,
     this.suffixIcon,
@@ -67,7 +67,7 @@ class AuthTextField extends StatelessWidget {
     this.onSubmitted,
     this.focusNode,
   });
-  final TextEditingController controller;
+  final TextEditingController? controller;
   final String labelText;
   final String? hintText;
   final IconData? prefixIcon;

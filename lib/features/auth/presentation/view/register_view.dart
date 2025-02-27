@@ -18,17 +18,18 @@ class RegisterView extends ConsumerWidget {
     // Access the ViewModel
     final viewModel = ref.watch(registerViewModelProvider.notifier);
     final state = ref.watch(registerViewModelProvider);
-    
+
     // Show error snackbar if error exists
-    _showErrorSnackbarIfNeeded(context, state.errorMessage, viewModel.resetError);
-    
+    _showErrorSnackbarIfNeeded(
+        context, state.errorMessage, viewModel.resetError);
+
     return Scaffold(
-      backgroundColor: Colors.white,
+      backgroundColor: AppColors.appBackground,
       appBar: AppBar(
-        backgroundColor: Colors.transparent,
+        backgroundColor: AppColors.appBackground,
         elevation: 0,
         leading: IconButton(
-          icon: const Icon(Icomoon.arrowLeft, color: Colors.black),
+          icon: const Icon(Icomoon.arrowLeftS, color: Colors.black),
           onPressed: () => context.go('/login'),
         ),
       ),
@@ -48,7 +49,7 @@ class RegisterView extends ConsumerWidget {
                     subtitle: 'Начните общаться прямо сейчас',
                   ),
                   const SizedBox(height: 32),
-                  
+
                   // Username field
                   AuthTextField(
                     controller: viewModel.usernameController,
@@ -59,7 +60,7 @@ class RegisterView extends ConsumerWidget {
                     enabled: !state.isLoading,
                   ),
                   const SizedBox(height: 16),
-                  
+
                   // Email field
                   AuthTextField(
                     controller: viewModel.emailController,
@@ -71,7 +72,7 @@ class RegisterView extends ConsumerWidget {
                     enabled: !state.isLoading,
                   ),
                   const SizedBox(height: 16),
-                  
+
                   // Password field
                   AuthTextField(
                     controller: viewModel.passwordController,
@@ -86,15 +87,15 @@ class RegisterView extends ConsumerWidget {
                             : Icomoon.view,
                         color: Colors.grey,
                       ),
-                      onPressed: !state.isLoading 
-                          ? viewModel.togglePasswordVisibility 
+                      onPressed: !state.isLoading
+                          ? viewModel.togglePasswordVisibility
                           : null,
                     ),
                     validator: Validators.validatePassword,
                     enabled: !state.isLoading,
                   ),
                   const SizedBox(height: 16),
-                  
+
                   // Confirm password field
                   AuthTextField(
                     controller: viewModel.confirmPasswordController,
@@ -109,23 +110,25 @@ class RegisterView extends ConsumerWidget {
                             : Icomoon.view,
                         color: Colors.grey,
                       ),
-                      onPressed: !state.isLoading 
-                          ? viewModel.toggleConfirmPasswordVisibility 
+                      onPressed: !state.isLoading
+                          ? viewModel.toggleConfirmPasswordVisibility
                           : null,
                     ),
                     validator: viewModel.validateConfirmPassword,
                     enabled: !state.isLoading,
                   ),
                   const SizedBox(height: 24),
-                  
+
                   // Register button
                   AuthButton(
                     text: 'Зарегистрироваться',
-                    onPressed: state.isLoading ? null : () async => viewModel.register(context),
+                    onPressed: state.isLoading
+                        ? null
+                        : () async => viewModel.register(context),
                     isLoading: state.isLoading,
                   ),
                   const SizedBox(height: 24),
-                  
+
                   // Login link
                   _buildLoginLink(context, state.isLoading),
                 ],
@@ -136,28 +139,28 @@ class RegisterView extends ConsumerWidget {
       ),
     );
   }
-  
+
   Widget _buildLoginLink(BuildContext context, bool isLoading) => Row(
-      mainAxisAlignment: MainAxisAlignment.center,
-      children: [
-         Text(
-          'Уже есть аккаунт? ',
-          style: AppTextStyles.small.copyWith(            color: Colors.black87,
-),
-         
-        ),
-        TextButton(
-          onPressed: isLoading ? null : () => context.go('/login'),
-          child:  Text(
-            'Войти',
-           style: AppTextStyles.small,
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Text(
+            'Уже есть аккаунт? ',
+            style: AppTextStyles.small.copyWith(
+              color: Colors.black87,
+            ),
           ),
-        ),
-      ],
-    );
-  
+          TextButton(
+            onPressed: isLoading ? null : () => context.go('/login'),
+            child: Text(
+              'Войти',
+              style: AppTextStyles.small,
+            ),
+          ),
+        ],
+      );
+
   void _showErrorSnackbarIfNeeded(
-    BuildContext context, 
+    BuildContext context,
     String? errorMessage,
     VoidCallback resetError,
   ) {
@@ -175,7 +178,7 @@ class RegisterView extends ConsumerWidget {
             ),
           ),
         );
-        
+
         // Reset error after showing snackbar
         resetError();
       });

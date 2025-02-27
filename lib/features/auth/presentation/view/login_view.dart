@@ -1,5 +1,6 @@
 // lib/features/auth/presentation/view/login_view.dart
 import 'package:flutter/material.dart';
+import 'package:flutter_chat/app/theme/colors.dart';
 import 'package:flutter_chat/app/theme/icons.dart';
 import 'package:flutter_chat/app/theme/text_styles.dart';
 import 'package:flutter_chat/core/utils/validators/validators.dart';
@@ -23,7 +24,7 @@ class LoginView extends ConsumerWidget {
     _showErrorSnackbarIfNeeded(context, state.errorMessage, viewModel.resetError);
     
     return Scaffold(
-      backgroundColor: Colors.white,
+      backgroundColor: AppColors.appBackground,
       body: SafeArea(
         child: Center(
           child: SingleChildScrollView(

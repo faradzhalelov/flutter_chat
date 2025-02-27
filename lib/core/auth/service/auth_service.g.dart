@@ -44,14 +44,13 @@ final currentUserProvider = AutoDisposeProvider<supabase.User?>.internal(
 @Deprecated('Will be removed in 3.0. Use Ref instead')
 // ignore: unused_element
 typedef CurrentUserRef = AutoDisposeProviderRef<supabase.User?>;
-String _$userProfileHash() => r'16f41a87dc097b01de08e5292fbc98b6719e653c';
+String _$userProfileHash() => r'e969b14a46aecf47fd19a2911a191c022cba45ab';
 
 /// Provider for current user profile data
 ///
 /// Copied from [userProfile].
 @ProviderFor(userProfile)
-final userProfileProvider =
-    AutoDisposeFutureProvider<Map<String, dynamic>>.internal(
+final userProfileProvider = AutoDisposeFutureProvider<UserModel>.internal(
   userProfile,
   name: r'userProfileProvider',
   debugGetCreateSourceHash:
@@ -62,7 +61,7 @@ final userProfileProvider =
 
 @Deprecated('Will be removed in 3.0. Use Ref instead')
 // ignore: unused_element
-typedef UserProfileRef = AutoDisposeFutureProviderRef<Map<String, dynamic>>;
+typedef UserProfileRef = AutoDisposeFutureProviderRef<UserModel>;
 String _$authStateHash() => r'b2b82e6464be6ec51fdb12a15b3043ce6486825e';
 
 /// Provider for auth state to manage authentication
