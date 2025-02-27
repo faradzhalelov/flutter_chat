@@ -14,11 +14,11 @@ _$MessageModelImpl _$$MessageModelImplFromJson(Map<String, dynamic> json) =>
       isMe: json['isMe'] as bool,
       createdAt: DateTime.parse(json['createdAt'] as String),
       text: json['text'] as String?,
-      attachmentPath: json['attachmentPath'] as String?,
+      attachmentUrl: json['attachmentUrl'] as String?,
       attachmentName: json['attachmentName'] as String?,
-      attachmentType: $enumDecodeNullable(
-              _$AttachmentTypeEnumMap, json['attachmentType']) ??
-          AttachmentType.none,
+      messageType:
+          $enumDecodeNullable(_$AttachmentTypeEnumMap, json['messageType']) ??
+              AttachmentType.text,
       updatedAt: json['updatedAt'] == null
           ? null
           : DateTime.parse(json['updatedAt'] as String),
@@ -33,17 +33,17 @@ Map<String, dynamic> _$$MessageModelImplToJson(_$MessageModelImpl instance) =>
       'isMe': instance.isMe,
       'createdAt': instance.createdAt.toIso8601String(),
       'text': instance.text,
-      'attachmentPath': instance.attachmentPath,
+      'attachmentUrl': instance.attachmentUrl,
       'attachmentName': instance.attachmentName,
-      'attachmentType': _$AttachmentTypeEnumMap[instance.attachmentType]!,
+      'messageType': _$AttachmentTypeEnumMap[instance.messageType]!,
       'updatedAt': instance.updatedAt?.toIso8601String(),
       'isRead': instance.isRead,
     };
 
 const _$AttachmentTypeEnumMap = {
-  AttachmentType.none: 'none',
+  AttachmentType.text: 'text',
   AttachmentType.image: 'image',
   AttachmentType.video: 'video',
   AttachmentType.file: 'file',
-  AttachmentType.voice: 'voice',
+  AttachmentType.audio: 'audio',
 };

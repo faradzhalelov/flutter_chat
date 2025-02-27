@@ -151,14 +151,14 @@ class ChatListItem extends StatelessWidget {
     }
     
     // For attachments
-    switch (message.attachmentType) {
+    switch (message.messageType) {
       case AttachmentType.image:
         return 'Фото';
       case AttachmentType.video:
         return 'Видео';
       case AttachmentType.file:
         return 'Файл';
-      case AttachmentType.voice:
+      case AttachmentType.audio:
         return 'Голосовое сообщение';
       default:
         return '';

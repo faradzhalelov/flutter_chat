@@ -51,7 +51,7 @@ dependencies:
   #database
   drift: ^2.25.1
   drift_flutter: ^0.2.4
-  
+  sqlite3_flutter_libs: ^0.5.31
   
 
 dev_dependencies:

@@ -26,9 +26,9 @@ mixin _$MessageModel {
   bool get isMe => throw _privateConstructorUsedError;
   DateTime get createdAt => throw _privateConstructorUsedError;
   String? get text => throw _privateConstructorUsedError;
-  String? get attachmentPath => throw _privateConstructorUsedError;
+  String? get attachmentUrl => throw _privateConstructorUsedError;
   String? get attachmentName => throw _privateConstructorUsedError;
-  AttachmentType get attachmentType => throw _privateConstructorUsedError;
+  AttachmentType get messageType => throw _privateConstructorUsedError;
   DateTime? get updatedAt => throw _privateConstructorUsedError;
   bool get isRead => throw _privateConstructorUsedError;
 
@@ -55,9 +55,9 @@ abstract class $MessageModelCopyWith<$Res> {
       bool isMe,
       DateTime createdAt,
       String? text,
-      String? attachmentPath,
+      String? attachmentUrl,
       String? attachmentName,
-      AttachmentType attachmentType,
+      AttachmentType messageType,
       DateTime? updatedAt,
       bool isRead});
 }
@@ -83,9 +83,9 @@ class _$MessageModelCopyWithImpl<$Res, $Val extends MessageModel>
     Object? isMe = null,
     Object? createdAt = null,
     Object? text = freezed,
-    Object? attachmentPath = freezed,
+    Object? attachmentUrl = freezed,
     Object? attachmentName = freezed,
-    Object? attachmentType = null,
+    Object? messageType = null,
     Object? updatedAt = freezed,
     Object? isRead = null,
   }) {
@@ -114,17 +114,17 @@ class _$MessageModelCopyWithImpl<$Res, $Val extends MessageModel>
           ? _value.text
           : text // ignore: cast_nullable_to_non_nullable
               as String?,
-      attachmentPath: freezed == attachmentPath
-          ? _value.attachmentPath
-          : attachmentPath // ignore: cast_nullable_to_non_nullable
+      attachmentUrl: freezed == attachmentUrl
+          ? _value.attachmentUrl
+          : attachmentUrl // ignore: cast_nullable_to_non_nullable
               as String?,
       attachmentName: freezed == attachmentName
           ? _value.attachmentName
           : attachmentName // ignore: cast_nullable_to_non_nullable
               as String?,
-      attachmentType: null == attachmentType
-          ? _value.attachmentType
-          : attachmentType // ignore: cast_nullable_to_non_nullable
+      messageType: null == messageType
+          ? _value.messageType
+          : messageType // ignore: cast_nullable_to_non_nullable
               as AttachmentType,
       updatedAt: freezed == updatedAt
           ? _value.updatedAt
@@ -153,9 +153,9 @@ abstract class _$$MessageModelImplCopyWith<$Res>
       bool isMe,
       DateTime createdAt,
       String? text,
-      String? attachmentPath,
+      String? attachmentUrl,
       String? attachmentName,
-      AttachmentType attachmentType,
+      AttachmentType messageType,
       DateTime? updatedAt,
       bool isRead});
 }
@@ -179,9 +179,9 @@ class __$$MessageModelImplCopyWithImpl<$Res>
     Object? isMe = null,
     Object? createdAt = null,
     Object? text = freezed,
-    Object? attachmentPath = freezed,
+    Object? attachmentUrl = freezed,
     Object? attachmentName = freezed,
-    Object? attachmentType = null,
+    Object? messageType = null,
     Object? updatedAt = freezed,
     Object? isRead = null,
   }) {
@@ -210,17 +210,17 @@ class __$$MessageModelImplCopyWithImpl<$Res>
           ? _value.text
           : text // ignore: cast_nullable_to_non_nullable
               as String?,
-      attachmentPath: freezed == attachmentPath
-          ? _value.attachmentPath
-          : attachmentPath // ignore: cast_nullable_to_non_nullable
+      attachmentUrl: freezed == attachmentUrl
+          ? _value.attachmentUrl
+          : attachmentUrl // ignore: cast_nullable_to_non_nullable
               as String?,
       attachmentName: freezed == attachmentName
           ? _value.attachmentName
           : attachmentName // ignore: cast_nullable_to_non_nullable
               as String?,
-      attachmentType: null == attachmentType
-          ? _value.attachmentType
-          : attachmentType // ignore: cast_nullable_to_non_nullable
+      messageType: null == messageType
+          ? _value.messageType
+          : messageType // ignore: cast_nullable_to_non_nullable
               as AttachmentType,
       updatedAt: freezed == updatedAt
           ? _value.updatedAt
@@ -244,9 +244,9 @@ class _$MessageModelImpl implements _MessageModel {
       required this.isMe,
       required this.createdAt,
       this.text,
-      this.attachmentPath,
+      this.attachmentUrl,
       this.attachmentName,
-      this.attachmentType = AttachmentType.none,
+      this.messageType = AttachmentType.text,
       this.updatedAt,
       this.isRead = false});
 
@@ -266,12 +266,12 @@ class _$MessageModelImpl implements _MessageModel {
   @override
   final String? text;
   @override
-  final String? attachmentPath;
+  final String? attachmentUrl;
   @override
   final String? attachmentName;
   @override
   @JsonKey()
-  final AttachmentType attachmentType;
+  final AttachmentType messageType;
   @override
   final DateTime? updatedAt;
   @override
@@ -280,7 +280,7 @@ class _$MessageModelImpl implements _MessageModel {
 
   @override
   String toString() {
-    return 'MessageModel(id: $id, chatId: $chatId, userId: $userId, isMe: $isMe, createdAt: $createdAt, text: $text, attachmentPath: $attachmentPath, attachmentName: $attachmentName, attachmentType: $attachmentType, updatedAt: $updatedAt, isRead: $isRead)';
+    return 'MessageModel(id: $id, chatId: $chatId, userId: $userId, isMe: $isMe, createdAt: $createdAt, text: $text, attachmentUrl: $attachmentUrl, attachmentName: $attachmentName, messageType: $messageType, updatedAt: $updatedAt, isRead: $isRead)';
   }
 
   @override
@@ -295,12 +295,12 @@ class _$MessageModelImpl implements _MessageModel {
             (identical(other.createdAt, createdAt) ||
                 other.createdAt == createdAt) &&
             (identical(other.text, text) || other.text == text) &&
-            (identical(other.attachmentPath, attachmentPath) ||
-                other.attachmentPath == attachmentPath) &&
+            (identical(other.attachmentUrl, attachmentUrl) ||
+                other.attachmentUrl == attachmentUrl) &&
             (identical(other.attachmentName, attachmentName) ||
                 other.attachmentName == attachmentName) &&
-            (identical(other.attachmentType, attachmentType) ||
-                other.attachmentType == attachmentType) &&
+            (identical(other.messageType, messageType) ||
+                other.messageType == messageType) &&
             (identical(other.updatedAt, updatedAt) ||
                 other.updatedAt == updatedAt) &&
             (identical(other.isRead, isRead) || other.isRead == isRead));
@@ -316,9 +316,9 @@ class _$MessageModelImpl implements _MessageModel {
       isMe,
       createdAt,
       text,
-      attachmentPath,
+      attachmentUrl,
       attachmentName,
-      attachmentType,
+      messageType,
       updatedAt,
       isRead);
 
@@ -346,9 +346,9 @@ abstract class _MessageModel implements MessageModel {
       required final bool isMe,
       required final DateTime createdAt,
       final String? text,
-      final String? attachmentPath,
+      final String? attachmentUrl,
       final String? attachmentName,
-      final AttachmentType attachmentType,
+      final AttachmentType messageType,
       final DateTime? updatedAt,
       final bool isRead}) = _$MessageModelImpl;
 
@@ -368,11 +368,11 @@ abstract class _MessageModel implements MessageModel {
   @override
   String? get text;
   @override
-  String? get attachmentPath;
+  String? get attachmentUrl;
   @override
   String? get attachmentName;
   @override
-  AttachmentType get attachmentType;
+  AttachmentType get messageType;
   @override
   DateTime? get updatedAt;
   @override

@@ -135,7 +135,7 @@ class _ChatViewState extends ConsumerState<ChatView> {
                   }
         
                   // Group messages by date
-                  final groupedMessages = <DateTime, List<dynamic>>{};
+                  final groupedMessages = <DateTime, List<MessageModel>>{};
         
                   for (final message in messages) {
                     final date = DateTime(
@@ -159,8 +159,9 @@ class _ChatViewState extends ConsumerState<ChatView> {
                     ..sort((a, b) => a.compareTo(b));
         
                   for (final date in sortedDates) {
+                    final sortedGroupMessages = groupedMessages[date]!..sort((a,b) => a.createdAt.compareTo(b.createdAt));
                     flatList.add(date); // Date separator
-                    flatList.addAll(groupedMessages[date]!);
+                    flatList.addAll(sortedGroupMessages);
                   }
         
                   // Scroll to bottom on new messages

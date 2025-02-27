@@ -160,33 +160,40 @@ class _MessageInputState extends ConsumerState<MessageInput> with SingleTickerPr
                 children: [
                   // Attachment button
                   IconButton(
-                    icon: AnimatedIcon(
-                      icon: AnimatedIcons.menu_close,
-                      progress: _animation,
-                      color: Colors.grey.shade600,
-                      size: 24,
+                    style: ButtonStyle(
+                      backgroundColor: const WidgetStatePropertyAll(AppColors.searchBackground),
+                      fixedSize: const WidgetStatePropertyAll(Size(42,42)),
+                      shape: WidgetStatePropertyAll(RoundedRectangleBorder(borderRadius: BorderRadius.circular(12))),
                     ),
+                    icon: const Icon(Icomoon.attach,size: 24, color: AppColors.black,),
                     onPressed: isLoading ? null : _toggleAttachmentMenu,
                   ),
                   
                   // Text input field
                   Expanded(
                     child: Container(
-                      margin: const EdgeInsets.symmetric(vertical: 4),
+                      height: 42,
+                      margin: const EdgeInsets.symmetric(vertical: 14),
                       decoration: BoxDecoration(
                         color: AppColors.searchBackground,
-                        borderRadius: BorderRadius.circular(20),
+                        borderRadius: BorderRadius.circular(12),
                       ),
                       child: TextField(
                         controller: _textController,
                         focusNode: _focusNode,
+                        
                         decoration: InputDecoration(
+                          filled: false,
+                          fillColor: AppColors.searchBackground,
                           hintText: _isRecording ? 'Запись...' : 'Сообщение',
                           hintStyle: TextStyle(color: Colors.grey.shade500),
-                          border: InputBorder.none,
                           contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
                           enabled: !_isRecording && !isLoading,
+                         
                         ),
+                        onChanged: (_) => setState(() {
+                            
+                          }),
                         textCapitalization: TextCapitalization.sentences,
                         keyboardType: TextInputType.multiline,
                         maxLines: 5,
@@ -197,8 +204,13 @@ class _MessageInputState extends ConsumerState<MessageInput> with SingleTickerPr
                   ),
                   
                   // Audio recording or send button
-                  if (_textController.text.isEmpty)
+                  if (_textController.value.text.isEmpty)
                     IconButton(
+                      style: ButtonStyle(
+                      backgroundColor: const WidgetStatePropertyAll(AppColors.searchBackground),
+                      fixedSize: const WidgetStatePropertyAll(Size(42,42)),
+                      shape: WidgetStatePropertyAll(RoundedRectangleBorder(borderRadius: BorderRadius.circular(12))),
+                    ),
                       icon: Icon(
                         _isRecording ? Icons.stop : Icomoon.audio,
                         color: _isRecording ? Colors.red : Colors.grey.shade600,
@@ -209,7 +221,7 @@ class _MessageInputState extends ConsumerState<MessageInput> with SingleTickerPr
                     IconButton(
                       icon: const Icon(
                         Icons.send,
-                        color: AppColors.myMessageBubble,
+                        color: AppColors.black,
                       ),
                       onPressed: isLoading ? null : _sendMessage,
                     ),

@@ -157,7 +157,7 @@ class _CreateChatProviderElement
   String get otherUserId => (origin as CreateChatProvider).otherUserId;
 }
 
-String _$chatListViewModelHash() => r'a7680b93a59b3ce9887fb3f046be80e9b1d0020c';
+String _$chatListViewModelHash() => r'38f2e16abffcb850cbc0de92e34513a671a311bf';
 
 /// See also [ChatListViewModel].
 @ProviderFor(ChatListViewModel)

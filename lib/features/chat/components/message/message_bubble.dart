@@ -19,6 +19,40 @@ class MessageBubble extends StatelessWidget {
   final MessageModel message;
   final bool showTail;
 
+  Widget _buildTextWithWidth(
+  String text,
+  TextStyle style,
+  {
+    double maxWidth = 250.0,
+    double minWidth = 50.0,
+    double padding = 32.0,
+  }
+) {
+  // Calculate text width using TextPainter
+  final textSpan = TextSpan(text: text, style: style);
+  final textPainter = TextPainter(
+    text: textSpan,
+    textDirection: TextDirection.ltr,
+  );
+  
+  // Layout with constraint
+  textPainter.layout(maxWidth: maxWidth - padding);
+  
+  // Get the width (clamped between min and max)
+  final textWidth = textPainter.width;
+  final calculatedWidth = textWidth + padding;  // Add padding for bubble
+  final finalWidth = calculatedWidth.clamp(minWidth, maxWidth);
+  
+  // Return SizedBox with calculated width
+  return SizedBox(
+    width: finalWidth,
+    child: Text(
+      text,
+      style: style,
+    ),
+  );
+}
+
   @override
   Widget build(BuildContext context) {
     final bubbleTheme = AppTheme.messageBubbleTheme;
@@ -45,24 +79,22 @@ class MessageBubble extends StatelessWidget {
           children: [
             // Text message
             if (message.text != null && message.text!.isNotEmpty)
-              Text(
-                message.text!,
-                style: AppTextStyles.small.copyWith(
+            _buildTextWithWidth(message.text?? ', ',AppTextStyles.small.copyWith(
                   color: isMe
                       ? bubbleTheme.myMessageTextColor
                       : bubbleTheme.otherMessageTextColor,
-                ),
-              ),
+                ),),
+              
             
             // Image attachment
-            if (message.attachmentType == AttachmentType.image && 
-                message.attachmentPath != null)
+            if (message.messageType == AttachmentType.image && 
+                message.attachmentUrl != null)
               Padding(
                 padding: const EdgeInsets.only(top: 8.0),
                 child: ClipRRect(
                   borderRadius: BorderRadius.circular(12),
                   child: Image.file(
-                    File(message.attachmentPath!),
+                    File(message.attachmentUrl!),
                     fit: BoxFit.cover,
                     width: double.infinity,
                     errorBuilder: (context, error, stackTrace) => Container(
@@ -83,7 +115,7 @@ class MessageBubble extends StatelessWidget {
                 mainAxisSize: MainAxisSize.min,
                 mainAxisAlignment: MainAxisAlignment.end,
                 children: [
-                  const Spacer(),
+                  //const Spacer(),
                   Text(
                     _formatTime(message.createdAt),
                     style: AppTextStyles.extraSmall.copyWith(
