@@ -36,12 +36,6 @@ class $UsersTable extends Users with TableInfo<$UsersTable, User> {
   late final GeneratedColumn<DateTime> createdAt = GeneratedColumn<DateTime>(
       'created_at', aliasedName, false,
       type: DriftSqlType.dateTime, requiredDuringInsert: true);
-  static const VerificationMeta _lastSeenMeta =
-      const VerificationMeta('lastSeen');
-  @override
-  late final GeneratedColumn<DateTime> lastSeen = GeneratedColumn<DateTime>(
-      'last_seen', aliasedName, false,
-      type: DriftSqlType.dateTime, requiredDuringInsert: true);
   static const VerificationMeta _isOnlineMeta =
       const VerificationMeta('isOnline');
   @override
@@ -54,7 +48,7 @@ class $UsersTable extends Users with TableInfo<$UsersTable, User> {
       defaultValue: const Constant(false));
   @override
   List<GeneratedColumn> get $columns =>
-      [id, email, username, avatarUrl, createdAt, lastSeen, isOnline];
+      [id, email, username, avatarUrl, createdAt, isOnline];
   @override
   String get aliasedName => _alias ?? actualTableName;
   @override
@@ -92,12 +86,6 @@ class $UsersTable extends Users with TableInfo<$UsersTable, User> {
     } else if (isInserting) {
       context.missing(_createdAtMeta);
     }
-    if (data.containsKey('last_seen')) {
-      context.handle(_lastSeenMeta,
-          lastSeen.isAcceptableOrUnknown(data['last_seen']!, _lastSeenMeta));
-    } else if (isInserting) {
-      context.missing(_lastSeenMeta);
-    }
     if (data.containsKey('is_online')) {
       context.handle(_isOnlineMeta,
           isOnline.isAcceptableOrUnknown(data['is_online']!, _isOnlineMeta));
@@ -121,8 +109,6 @@ class $UsersTable extends Users with TableInfo<$UsersTable, User> {
           .read(DriftSqlType.string, data['${effectivePrefix}avatar_url']),
       createdAt: attachedDatabase.typeMapping
           .read(DriftSqlType.dateTime, data['${effectivePrefix}created_at'])!,
-      lastSeen: attachedDatabase.typeMapping
-          .read(DriftSqlType.dateTime, data['${effectivePrefix}last_seen'])!,
       isOnline: attachedDatabase.typeMapping
           .read(DriftSqlType.bool, data['${effectivePrefix}is_online'])!,
     );
@@ -140,7 +126,6 @@ class User extends DataClass implements Insertable<User> {
   final String username;
   final String? avatarUrl;
   final DateTime createdAt;
-  final DateTime lastSeen;
   final bool isOnline;
   const User(
       {required this.id,
@@ -148,7 +133,6 @@ class User extends DataClass implements Insertable<User> {
       required this.username,
       this.avatarUrl,
       required this.createdAt,
-      required this.lastSeen,
       required this.isOnline});
   @override
   Map<String, Expression> toColumns(bool nullToAbsent) {
@@ -160,7 +144,6 @@ class User extends DataClass implements Insertable<User> {
       map['avatar_url'] = Variable<String>(avatarUrl);
     }
     map['created_at'] = Variable<DateTime>(createdAt);
-    map['last_seen'] = Variable<DateTime>(lastSeen);
     map['is_online'] = Variable<bool>(isOnline);
     return map;
   }
@@ -174,7 +157,6 @@ class User extends DataClass implements Insertable<User> {
           ? const Value.absent()
           : Value(avatarUrl),
       createdAt: Value(createdAt),
-      lastSeen: Value(lastSeen),
       isOnline: Value(isOnline),
     );
   }
@@ -188,7 +170,6 @@ class User extends DataClass implements Insertable<User> {
       username: serializer.fromJson<String>(json['username']),
       avatarUrl: serializer.fromJson<String?>(json['avatarUrl']),
       createdAt: serializer.fromJson<DateTime>(json['createdAt']),
-      lastSeen: serializer.fromJson<DateTime>(json['lastSeen']),
       isOnline: serializer.fromJson<bool>(json['isOnline']),
     );
   }
@@ -201,7 +182,6 @@ class User extends DataClass implements Insertable<User> {
       'username': serializer.toJson<String>(username),
       'avatarUrl': serializer.toJson<String?>(avatarUrl),
       'createdAt': serializer.toJson<DateTime>(createdAt),
-      'lastSeen': serializer.toJson<DateTime>(lastSeen),
       'isOnline': serializer.toJson<bool>(isOnline),
     };
   }
@@ -212,7 +192,6 @@ class User extends DataClass implements Insertable<User> {
           String? username,
           Value<String?> avatarUrl = const Value.absent(),
           DateTime? createdAt,
-          DateTime? lastSeen,
           bool? isOnline}) =>
       User(
         id: id ?? this.id,
@@ -220,7 +199,6 @@ class User extends DataClass implements Insertable<User> {
         username: username ?? this.username,
         avatarUrl: avatarUrl.present ? avatarUrl.value : this.avatarUrl,
         createdAt: createdAt ?? this.createdAt,
-        lastSeen: lastSeen ?? this.lastSeen,
         isOnline: isOnline ?? this.isOnline,
       );
   User copyWithCompanion(UsersCompanion data) {
@@ -230,7 +208,6 @@ class User extends DataClass implements Insertable<User> {
       username: data.username.present ? data.username.value : this.username,
       avatarUrl: data.avatarUrl.present ? data.avatarUrl.value : this.avatarUrl,
       createdAt: data.createdAt.present ? data.createdAt.value : this.createdAt,
-      lastSeen: data.lastSeen.present ? data.lastSeen.value : this.lastSeen,
       isOnline: data.isOnline.present ? data.isOnline.value : this.isOnline,
     );
   }
@@ -243,15 +220,14 @@ class User extends DataClass implements Insertable<User> {
           ..write('username: $username, ')
           ..write('avatarUrl: $avatarUrl, ')
           ..write('createdAt: $createdAt, ')
-          ..write('lastSeen: $lastSeen, ')
           ..write('isOnline: $isOnline')
           ..write(')'))
         .toString();
   }
 
   @override
-  int get hashCode => Object.hash(
-      id, email, username, avatarUrl, createdAt, lastSeen, isOnline);
+  int get hashCode =>
+      Object.hash(id, email, username, avatarUrl, createdAt, isOnline);
   @override
   bool operator ==(Object other) =>
       identical(this, other) ||
@@ -261,7 +237,6 @@ class User extends DataClass implements Insertable<User> {
           other.username == this.username &&
           other.avatarUrl == this.avatarUrl &&
           other.createdAt == this.createdAt &&
-          other.lastSeen == this.lastSeen &&
           other.isOnline == this.isOnline);
 }
 
@@ -271,7 +246,6 @@ class UsersCompanion extends UpdateCompanion<User> {
   final Value<String> username;
   final Value<String?> avatarUrl;
   final Value<DateTime> createdAt;
-  final Value<DateTime> lastSeen;
   final Value<bool> isOnline;
   final Value<int> rowid;
   const UsersCompanion({
@@ -280,7 +254,6 @@ class UsersCompanion extends UpdateCompanion<User> {
     this.username = const Value.absent(),
     this.avatarUrl = const Value.absent(),
     this.createdAt = const Value.absent(),
-    this.lastSeen = const Value.absent(),
     this.isOnline = const Value.absent(),
     this.rowid = const Value.absent(),
   });
@@ -290,21 +263,18 @@ class UsersCompanion extends UpdateCompanion<User> {
     required String username,
     this.avatarUrl = const Value.absent(),
     required DateTime createdAt,
-    required DateTime lastSeen,
     this.isOnline = const Value.absent(),
     this.rowid = const Value.absent(),
   })  : id = Value(id),
         email = Value(email),
         username = Value(username),
-        createdAt = Value(createdAt),
-        lastSeen = Value(lastSeen);
+        createdAt = Value(createdAt);
   static Insertable<User> custom({
     Expression<String>? id,
     Expression<String>? email,
     Expression<String>? username,
     Expression<String>? avatarUrl,
     Expression<DateTime>? createdAt,
-    Expression<DateTime>? lastSeen,
     Expression<bool>? isOnline,
     Expression<int>? rowid,
   }) {
@@ -314,7 +284,6 @@ class UsersCompanion extends UpdateCompanion<User> {
       if (username != null) 'username': username,
       if (avatarUrl != null) 'avatar_url': avatarUrl,
       if (createdAt != null) 'created_at': createdAt,
-      if (lastSeen != null) 'last_seen': lastSeen,
       if (isOnline != null) 'is_online': isOnline,
       if (rowid != null) 'rowid': rowid,
     });
@@ -326,7 +295,6 @@ class UsersCompanion extends UpdateCompanion<User> {
       Value<String>? username,
       Value<String?>? avatarUrl,
       Value<DateTime>? createdAt,
-      Value<DateTime>? lastSeen,
       Value<bool>? isOnline,
       Value<int>? rowid}) {
     return UsersCompanion(
@@ -335,7 +303,6 @@ class UsersCompanion extends UpdateCompanion<User> {
       username: username ?? this.username,
       avatarUrl: avatarUrl ?? this.avatarUrl,
       createdAt: createdAt ?? this.createdAt,
-      lastSeen: lastSeen ?? this.lastSeen,
       isOnline: isOnline ?? this.isOnline,
       rowid: rowid ?? this.rowid,
     );
@@ -359,9 +326,6 @@ class UsersCompanion extends UpdateCompanion<User> {
     if (createdAt.present) {
       map['created_at'] = Variable<DateTime>(createdAt.value);
     }
-    if (lastSeen.present) {
-      map['last_seen'] = Variable<DateTime>(lastSeen.value);
-    }
     if (isOnline.present) {
       map['is_online'] = Variable<bool>(isOnline.value);
     }
@@ -379,7 +343,6 @@ class UsersCompanion extends UpdateCompanion<User> {
           ..write('username: $username, ')
           ..write('avatarUrl: $avatarUrl, ')
           ..write('createdAt: $createdAt, ')
-          ..write('lastSeen: $lastSeen, ')
           ..write('isOnline: $isOnline, ')
           ..write('rowid: $rowid')
           ..write(')'))
@@ -409,6 +372,28 @@ class $ChatsTable extends Chats with TableInfo<$ChatsTable, Chat> {
   late final GeneratedColumn<DateTime> lastMessageAt =
       GeneratedColumn<DateTime>('last_message_at', aliasedName, false,
           type: DriftSqlType.dateTime, requiredDuringInsert: true);
+  static const VerificationMeta _lastMessageTextMeta =
+      const VerificationMeta('lastMessageText');
+  @override
+  late final GeneratedColumn<String> lastMessageText = GeneratedColumn<String>(
+      'last_message_text', aliasedName, true,
+      type: DriftSqlType.string, requiredDuringInsert: false);
+  static const VerificationMeta _lastMessageTypeMeta =
+      const VerificationMeta('lastMessageType');
+  @override
+  late final GeneratedColumn<String> lastMessageType = GeneratedColumn<String>(
+      'last_message_type', aliasedName, true,
+      type: DriftSqlType.string, requiredDuringInsert: false);
+  static const VerificationMeta _lastMessageIsMeMeta =
+      const VerificationMeta('lastMessageIsMe');
+  @override
+  late final GeneratedColumn<bool> lastMessageIsMe = GeneratedColumn<bool>(
+      'last_message_is_me', aliasedName, false,
+      type: DriftSqlType.bool,
+      requiredDuringInsert: false,
+      defaultConstraints: GeneratedColumn.constraintIsAlways(
+          'CHECK ("last_message_is_me" IN (0, 1))'),
+      defaultValue: const Constant(false));
   static const VerificationMeta _isSyncedMeta =
       const VerificationMeta('isSynced');
   @override
@@ -420,8 +405,15 @@ class $ChatsTable extends Chats with TableInfo<$ChatsTable, Chat> {
           GeneratedColumn.constraintIsAlways('CHECK ("is_synced" IN (0, 1))'),
       defaultValue: const Constant(true));
   @override
-  List<GeneratedColumn> get $columns =>
-      [id, createdAt, lastMessageAt, isSynced];
+  List<GeneratedColumn> get $columns => [
+        id,
+        createdAt,
+        lastMessageAt,
+        lastMessageText,
+        lastMessageType,
+        lastMessageIsMe,
+        isSynced
+      ];
   @override
   String get aliasedName => _alias ?? actualTableName;
   @override
@@ -451,6 +443,24 @@ class $ChatsTable extends Chats with TableInfo<$ChatsTable, Chat> {
     } else if (isInserting) {
       context.missing(_lastMessageAtMeta);
     }
+    if (data.containsKey('last_message_text')) {
+      context.handle(
+          _lastMessageTextMeta,
+          lastMessageText.isAcceptableOrUnknown(
+              data['last_message_text']!, _lastMessageTextMeta));
+    }
+    if (data.containsKey('last_message_type')) {
+      context.handle(
+          _lastMessageTypeMeta,
+          lastMessageType.isAcceptableOrUnknown(
+              data['last_message_type']!, _lastMessageTypeMeta));
+    }
+    if (data.containsKey('last_message_is_me')) {
+      context.handle(
+          _lastMessageIsMeMeta,
+          lastMessageIsMe.isAcceptableOrUnknown(
+              data['last_message_is_me']!, _lastMessageIsMeMeta));
+    }
     if (data.containsKey('is_synced')) {
       context.handle(_isSyncedMeta,
           isSynced.isAcceptableOrUnknown(data['is_synced']!, _isSyncedMeta));
@@ -470,6 +480,12 @@ class $ChatsTable extends Chats with TableInfo<$ChatsTable, Chat> {
           .read(DriftSqlType.dateTime, data['${effectivePrefix}created_at'])!,
       lastMessageAt: attachedDatabase.typeMapping.read(
           DriftSqlType.dateTime, data['${effectivePrefix}last_message_at'])!,
+      lastMessageText: attachedDatabase.typeMapping.read(
+          DriftSqlType.string, data['${effectivePrefix}last_message_text']),
+      lastMessageType: attachedDatabase.typeMapping.read(
+          DriftSqlType.string, data['${effectivePrefix}last_message_type']),
+      lastMessageIsMe: attachedDatabase.typeMapping.read(
+          DriftSqlType.bool, data['${effectivePrefix}last_message_is_me'])!,
       isSynced: attachedDatabase.typeMapping
           .read(DriftSqlType.bool, data['${effectivePrefix}is_synced'])!,
     );
@@ -485,11 +501,17 @@ class Chat extends DataClass implements Insertable<Chat> {
   final String id;
   final DateTime createdAt;
   final DateTime lastMessageAt;
+  final String? lastMessageText;
+  final String? lastMessageType;
+  final bool lastMessageIsMe;
   final bool isSynced;
   const Chat(
       {required this.id,
       required this.createdAt,
       required this.lastMessageAt,
+      this.lastMessageText,
+      this.lastMessageType,
+      required this.lastMessageIsMe,
       required this.isSynced});
   @override
   Map<String, Expression> toColumns(bool nullToAbsent) {
@@ -497,6 +519,13 @@ class Chat extends DataClass implements Insertable<Chat> {
     map['id'] = Variable<String>(id);
     map['created_at'] = Variable<DateTime>(createdAt);
     map['last_message_at'] = Variable<DateTime>(lastMessageAt);
+    if (!nullToAbsent || lastMessageText != null) {
+      map['last_message_text'] = Variable<String>(lastMessageText);
+    }
+    if (!nullToAbsent || lastMessageType != null) {
+      map['last_message_type'] = Variable<String>(lastMessageType);
+    }
+    map['last_message_is_me'] = Variable<bool>(lastMessageIsMe);
     map['is_synced'] = Variable<bool>(isSynced);
     return map;
   }
@@ -506,6 +535,13 @@ class Chat extends DataClass implements Insertable<Chat> {
       id: Value(id),
       createdAt: Value(createdAt),
       lastMessageAt: Value(lastMessageAt),
+      lastMessageText: lastMessageText == null && nullToAbsent
+          ? const Value.absent()
+          : Value(lastMessageText),
+      lastMessageType: lastMessageType == null && nullToAbsent
+          ? const Value.absent()
+          : Value(lastMessageType),
+      lastMessageIsMe: Value(lastMessageIsMe),
       isSynced: Value(isSynced),
     );
   }
@@ -517,6 +553,9 @@ class Chat extends DataClass implements Insertable<Chat> {
       id: serializer.fromJson<String>(json['id']),
       createdAt: serializer.fromJson<DateTime>(json['createdAt']),
       lastMessageAt: serializer.fromJson<DateTime>(json['lastMessageAt']),
+      lastMessageText: serializer.fromJson<String?>(json['lastMessageText']),
+      lastMessageType: serializer.fromJson<String?>(json['lastMessageType']),
+      lastMessageIsMe: serializer.fromJson<bool>(json['lastMessageIsMe']),
       isSynced: serializer.fromJson<bool>(json['isSynced']),
     );
   }
@@ -527,6 +566,9 @@ class Chat extends DataClass implements Insertable<Chat> {
       'id': serializer.toJson<String>(id),
       'createdAt': serializer.toJson<DateTime>(createdAt),
       'lastMessageAt': serializer.toJson<DateTime>(lastMessageAt),
+      'lastMessageText': serializer.toJson<String?>(lastMessageText),
+      'lastMessageType': serializer.toJson<String?>(lastMessageType),
+      'lastMessageIsMe': serializer.toJson<bool>(lastMessageIsMe),
       'isSynced': serializer.toJson<bool>(isSynced),
     };
   }
@@ -535,11 +577,21 @@ class Chat extends DataClass implements Insertable<Chat> {
           {String? id,
           DateTime? createdAt,
           DateTime? lastMessageAt,
+          Value<String?> lastMessageText = const Value.absent(),
+          Value<String?> lastMessageType = const Value.absent(),
+          bool? lastMessageIsMe,
           bool? isSynced}) =>
       Chat(
         id: id ?? this.id,
         createdAt: createdAt ?? this.createdAt,
         lastMessageAt: lastMessageAt ?? this.lastMessageAt,
+        lastMessageText: lastMessageText.present
+            ? lastMessageText.value
+            : this.lastMessageText,
+        lastMessageType: lastMessageType.present
+            ? lastMessageType.value
+            : this.lastMessageType,
+        lastMessageIsMe: lastMessageIsMe ?? this.lastMessageIsMe,
         isSynced: isSynced ?? this.isSynced,
       );
   Chat copyWithCompanion(ChatsCompanion data) {
@@ -549,6 +601,15 @@ class Chat extends DataClass implements Insertable<Chat> {
       lastMessageAt: data.lastMessageAt.present
           ? data.lastMessageAt.value
           : this.lastMessageAt,
+      lastMessageText: data.lastMessageText.present
+          ? data.lastMessageText.value
+          : this.lastMessageText,
+      lastMessageType: data.lastMessageType.present
+          ? data.lastMessageType.value
+          : this.lastMessageType,
+      lastMessageIsMe: data.lastMessageIsMe.present
+          ? data.lastMessageIsMe.value
+          : this.lastMessageIsMe,
       isSynced: data.isSynced.present ? data.isSynced.value : this.isSynced,
     );
   }
@@ -559,13 +620,17 @@ class Chat extends DataClass implements Insertable<Chat> {
           ..write('id: $id, ')
           ..write('createdAt: $createdAt, ')
           ..write('lastMessageAt: $lastMessageAt, ')
+          ..write('lastMessageText: $lastMessageText, ')
+          ..write('lastMessageType: $lastMessageType, ')
+          ..write('lastMessageIsMe: $lastMessageIsMe, ')
           ..write('isSynced: $isSynced')
           ..write(')'))
         .toString();
   }
 
   @override
-  int get hashCode => Object.hash(id, createdAt, lastMessageAt, isSynced);
+  int get hashCode => Object.hash(id, createdAt, lastMessageAt, lastMessageText,
+      lastMessageType, lastMessageIsMe, isSynced);
   @override
   bool operator ==(Object other) =>
       identical(this, other) ||
@@ -573,6 +638,9 @@ class Chat extends DataClass implements Insertable<Chat> {
           other.id == this.id &&
           other.createdAt == this.createdAt &&
           other.lastMessageAt == this.lastMessageAt &&
+          other.lastMessageText == this.lastMessageText &&
+          other.lastMessageType == this.lastMessageType &&
+          other.lastMessageIsMe == this.lastMessageIsMe &&
           other.isSynced == this.isSynced);
 }
 
@@ -580,12 +648,18 @@ class ChatsCompanion extends UpdateCompanion<Chat> {
   final Value<String> id;
   final Value<DateTime> createdAt;
   final Value<DateTime> lastMessageAt;
+  final Value<String?> lastMessageText;
+  final Value<String?> lastMessageType;
+  final Value<bool> lastMessageIsMe;
   final Value<bool> isSynced;
   final Value<int> rowid;
   const ChatsCompanion({
     this.id = const Value.absent(),
     this.createdAt = const Value.absent(),
     this.lastMessageAt = const Value.absent(),
+    this.lastMessageText = const Value.absent(),
+    this.lastMessageType = const Value.absent(),
+    this.lastMessageIsMe = const Value.absent(),
     this.isSynced = const Value.absent(),
     this.rowid = const Value.absent(),
   });
@@ -593,6 +667,9 @@ class ChatsCompanion extends UpdateCompanion<Chat> {
     required String id,
     required DateTime createdAt,
     required DateTime lastMessageAt,
+    this.lastMessageText = const Value.absent(),
+    this.lastMessageType = const Value.absent(),
+    this.lastMessageIsMe = const Value.absent(),
     this.isSynced = const Value.absent(),
     this.rowid = const Value.absent(),
   })  : id = Value(id),
@@ -602,6 +679,9 @@ class ChatsCompanion extends UpdateCompanion<Chat> {
     Expression<String>? id,
     Expression<DateTime>? createdAt,
     Expression<DateTime>? lastMessageAt,
+    Expression<String>? lastMessageText,
+    Expression<String>? lastMessageType,
+    Expression<bool>? lastMessageIsMe,
     Expression<bool>? isSynced,
     Expression<int>? rowid,
   }) {
@@ -609,6 +689,9 @@ class ChatsCompanion extends UpdateCompanion<Chat> {
       if (id != null) 'id': id,
       if (createdAt != null) 'created_at': createdAt,
       if (lastMessageAt != null) 'last_message_at': lastMessageAt,
+      if (lastMessageText != null) 'last_message_text': lastMessageText,
+      if (lastMessageType != null) 'last_message_type': lastMessageType,
+      if (lastMessageIsMe != null) 'last_message_is_me': lastMessageIsMe,
       if (isSynced != null) 'is_synced': isSynced,
       if (rowid != null) 'rowid': rowid,
     });
@@ -618,12 +701,18 @@ class ChatsCompanion extends UpdateCompanion<Chat> {
       {Value<String>? id,
       Value<DateTime>? createdAt,
       Value<DateTime>? lastMessageAt,
+      Value<String?>? lastMessageText,
+      Value<String?>? lastMessageType,
+      Value<bool>? lastMessageIsMe,
       Value<bool>? isSynced,
       Value<int>? rowid}) {
     return ChatsCompanion(
       id: id ?? this.id,
       createdAt: createdAt ?? this.createdAt,
       lastMessageAt: lastMessageAt ?? this.lastMessageAt,
+      lastMessageText: lastMessageText ?? this.lastMessageText,
+      lastMessageType: lastMessageType ?? this.lastMessageType,
+      lastMessageIsMe: lastMessageIsMe ?? this.lastMessageIsMe,
       isSynced: isSynced ?? this.isSynced,
       rowid: rowid ?? this.rowid,
     );
@@ -641,6 +730,15 @@ class ChatsCompanion extends UpdateCompanion<Chat> {
     if (lastMessageAt.present) {
       map['last_message_at'] = Variable<DateTime>(lastMessageAt.value);
     }
+    if (lastMessageText.present) {
+      map['last_message_text'] = Variable<String>(lastMessageText.value);
+    }
+    if (lastMessageType.present) {
+      map['last_message_type'] = Variable<String>(lastMessageType.value);
+    }
+    if (lastMessageIsMe.present) {
+      map['last_message_is_me'] = Variable<bool>(lastMessageIsMe.value);
+    }
     if (isSynced.present) {
       map['is_synced'] = Variable<bool>(isSynced.value);
     }
@@ -656,6 +754,9 @@ class ChatsCompanion extends UpdateCompanion<Chat> {
           ..write('id: $id, ')
           ..write('createdAt: $createdAt, ')
           ..write('lastMessageAt: $lastMessageAt, ')
+          ..write('lastMessageText: $lastMessageText, ')
+          ..write('lastMessageType: $lastMessageType, ')
+          ..write('lastMessageIsMe: $lastMessageIsMe, ')
           ..write('isSynced: $isSynced, ')
           ..write('rowid: $rowid')
           ..write(')'))
@@ -1561,7 +1662,6 @@ typedef $$UsersTableCreateCompanionBuilder = UsersCompanion Function({
   required String username,
   Value<String?> avatarUrl,
   required DateTime createdAt,
-  required DateTime lastSeen,
   Value<bool> isOnline,
   Value<int> rowid,
 });
@@ -1571,7 +1671,6 @@ typedef $$UsersTableUpdateCompanionBuilder = UsersCompanion Function({
   Value<String> username,
   Value<String?> avatarUrl,
   Value<DateTime> createdAt,
-  Value<DateTime> lastSeen,
   Value<bool> isOnline,
   Value<int> rowid,
 });
@@ -1633,9 +1732,6 @@ class $$UsersTableFilterComposer
 
   ColumnFilters<DateTime> get createdAt => $composableBuilder(
       column: $table.createdAt, builder: (column) => ColumnFilters(column));
-
-  ColumnFilters<DateTime> get lastSeen => $composableBuilder(
-      column: $table.lastSeen, builder: (column) => ColumnFilters(column));
 
   ColumnFilters<bool> get isOnline => $composableBuilder(
       column: $table.isOnline, builder: (column) => ColumnFilters(column));
@@ -1707,9 +1803,6 @@ class $$UsersTableOrderingComposer
   ColumnOrderings<DateTime> get createdAt => $composableBuilder(
       column: $table.createdAt, builder: (column) => ColumnOrderings(column));
 
-  ColumnOrderings<DateTime> get lastSeen => $composableBuilder(
-      column: $table.lastSeen, builder: (column) => ColumnOrderings(column));
-
   ColumnOrderings<bool> get isOnline => $composableBuilder(
       column: $table.isOnline, builder: (column) => ColumnOrderings(column));
 }
@@ -1737,9 +1830,6 @@ class $$UsersTableAnnotationComposer
 
   GeneratedColumn<DateTime> get createdAt =>
       $composableBuilder(column: $table.createdAt, builder: (column) => column);
-
-  GeneratedColumn<DateTime> get lastSeen =>
-      $composableBuilder(column: $table.lastSeen, builder: (column) => column);
 
   GeneratedColumn<bool> get isOnline =>
       $composableBuilder(column: $table.isOnline, builder: (column) => column);
@@ -1815,7 +1905,6 @@ class $$UsersTableTableManager extends RootTableManager<
             Value<String> username = const Value.absent(),
             Value<String?> avatarUrl = const Value.absent(),
             Value<DateTime> createdAt = const Value.absent(),
-            Value<DateTime> lastSeen = const Value.absent(),
             Value<bool> isOnline = const Value.absent(),
             Value<int> rowid = const Value.absent(),
           }) =>
@@ -1825,7 +1914,6 @@ class $$UsersTableTableManager extends RootTableManager<
             username: username,
             avatarUrl: avatarUrl,
             createdAt: createdAt,
-            lastSeen: lastSeen,
             isOnline: isOnline,
             rowid: rowid,
           ),
@@ -1835,7 +1923,6 @@ class $$UsersTableTableManager extends RootTableManager<
             required String username,
             Value<String?> avatarUrl = const Value.absent(),
             required DateTime createdAt,
-            required DateTime lastSeen,
             Value<bool> isOnline = const Value.absent(),
             Value<int> rowid = const Value.absent(),
           }) =>
@@ -1845,7 +1932,6 @@ class $$UsersTableTableManager extends RootTableManager<
             username: username,
             avatarUrl: avatarUrl,
             createdAt: createdAt,
-            lastSeen: lastSeen,
             isOnline: isOnline,
             rowid: rowid,
           ),
@@ -1910,6 +1996,9 @@ typedef $$ChatsTableCreateCompanionBuilder = ChatsCompanion Function({
   required String id,
   required DateTime createdAt,
   required DateTime lastMessageAt,
+  Value<String?> lastMessageText,
+  Value<String?> lastMessageType,
+  Value<bool> lastMessageIsMe,
   Value<bool> isSynced,
   Value<int> rowid,
 });
@@ -1917,6 +2006,9 @@ typedef $$ChatsTableUpdateCompanionBuilder = ChatsCompanion Function({
   Value<String> id,
   Value<DateTime> createdAt,
   Value<DateTime> lastMessageAt,
+  Value<String?> lastMessageText,
+  Value<String?> lastMessageType,
+  Value<bool> lastMessageIsMe,
   Value<bool> isSynced,
   Value<int> rowid,
 });
@@ -1972,6 +2064,18 @@ class $$ChatsTableFilterComposer
 
   ColumnFilters<DateTime> get lastMessageAt => $composableBuilder(
       column: $table.lastMessageAt, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<String> get lastMessageText => $composableBuilder(
+      column: $table.lastMessageText,
+      builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<String> get lastMessageType => $composableBuilder(
+      column: $table.lastMessageType,
+      builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<bool> get lastMessageIsMe => $composableBuilder(
+      column: $table.lastMessageIsMe,
+      builder: (column) => ColumnFilters(column));
 
   ColumnFilters<bool> get isSynced => $composableBuilder(
       column: $table.isSynced, builder: (column) => ColumnFilters(column));
@@ -2038,6 +2142,18 @@ class $$ChatsTableOrderingComposer
       column: $table.lastMessageAt,
       builder: (column) => ColumnOrderings(column));
 
+  ColumnOrderings<String> get lastMessageText => $composableBuilder(
+      column: $table.lastMessageText,
+      builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<String> get lastMessageType => $composableBuilder(
+      column: $table.lastMessageType,
+      builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<bool> get lastMessageIsMe => $composableBuilder(
+      column: $table.lastMessageIsMe,
+      builder: (column) => ColumnOrderings(column));
+
   ColumnOrderings<bool> get isSynced => $composableBuilder(
       column: $table.isSynced, builder: (column) => ColumnOrderings(column));
 }
@@ -2059,6 +2175,15 @@ class $$ChatsTableAnnotationComposer
 
   GeneratedColumn<DateTime> get lastMessageAt => $composableBuilder(
       column: $table.lastMessageAt, builder: (column) => column);
+
+  GeneratedColumn<String> get lastMessageText => $composableBuilder(
+      column: $table.lastMessageText, builder: (column) => column);
+
+  GeneratedColumn<String> get lastMessageType => $composableBuilder(
+      column: $table.lastMessageType, builder: (column) => column);
+
+  GeneratedColumn<bool> get lastMessageIsMe => $composableBuilder(
+      column: $table.lastMessageIsMe, builder: (column) => column);
 
   GeneratedColumn<bool> get isSynced =>
       $composableBuilder(column: $table.isSynced, builder: (column) => column);
@@ -2132,6 +2257,9 @@ class $$ChatsTableTableManager extends RootTableManager<
             Value<String> id = const Value.absent(),
             Value<DateTime> createdAt = const Value.absent(),
             Value<DateTime> lastMessageAt = const Value.absent(),
+            Value<String?> lastMessageText = const Value.absent(),
+            Value<String?> lastMessageType = const Value.absent(),
+            Value<bool> lastMessageIsMe = const Value.absent(),
             Value<bool> isSynced = const Value.absent(),
             Value<int> rowid = const Value.absent(),
           }) =>
@@ -2139,6 +2267,9 @@ class $$ChatsTableTableManager extends RootTableManager<
             id: id,
             createdAt: createdAt,
             lastMessageAt: lastMessageAt,
+            lastMessageText: lastMessageText,
+            lastMessageType: lastMessageType,
+            lastMessageIsMe: lastMessageIsMe,
             isSynced: isSynced,
             rowid: rowid,
           ),
@@ -2146,6 +2277,9 @@ class $$ChatsTableTableManager extends RootTableManager<
             required String id,
             required DateTime createdAt,
             required DateTime lastMessageAt,
+            Value<String?> lastMessageText = const Value.absent(),
+            Value<String?> lastMessageType = const Value.absent(),
+            Value<bool> lastMessageIsMe = const Value.absent(),
             Value<bool> isSynced = const Value.absent(),
             Value<int> rowid = const Value.absent(),
           }) =>
@@ -2153,6 +2287,9 @@ class $$ChatsTableTableManager extends RootTableManager<
             id: id,
             createdAt: createdAt,
             lastMessageAt: lastMessageAt,
+            lastMessageText: lastMessageText,
+            lastMessageType: lastMessageType,
+            lastMessageIsMe: lastMessageIsMe,
             isSynced: isSynced,
             rowid: rowid,
           ),

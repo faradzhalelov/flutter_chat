@@ -14,7 +14,6 @@ class UserModel with _$UserModel {
     required DateTime createdAt, 
     @Default(false) bool isOnline,
     String? avatarUrl,
-    DateTime? lastSeen,
     
   }) = _UserModel;
 
@@ -27,7 +26,6 @@ class UserModel with _$UserModel {
       username: data['username'] as String, // username in Supabase maps to name in our model
       avatarUrl: data['avatar_url'] as String?,
       createdAt: DateTime.parse(data['created_at'] as String),
-      lastSeen: data['last_seen'] != null ? DateTime.parse(data['last_seen'] as String) : null,
       isOnline: data['is_online'] as bool? ?? false,
     );
 }

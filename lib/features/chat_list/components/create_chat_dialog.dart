@@ -5,12 +5,11 @@ import 'package:flutter/material.dart';
 import 'package:flutter_chat/app/theme/colors.dart';
 import 'package:flutter_chat/app/theme/icons.dart';
 import 'package:flutter_chat/app/theme/text_styles.dart';
-import 'package:flutter_chat/core/auth/service/auth_service.dart';
 import 'package:flutter_chat/core/supabase/service/supabase_service.dart';
-import 'package:flutter_chat/features/chat/data/models/user.dart';
+import 'package:flutter_chat/features/auth/domain/service/auth_service.dart';
 import 'package:flutter_chat/features/chat_list/presentation/view_model/chat_list_view_model.dart';
-import 'package:flutter_hooks/flutter_hooks.dart';
-import 'package:hooks_riverpod/hooks_riverpod.dart';
+import 'package:flutter_chat/features/profile/data/models/user.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 // Provider to fetch users that don't have active chats with the current user
 final availableUsersProvider =
@@ -68,11 +67,16 @@ final filteredUsersProvider =
   );
 });
 
-class CreateChatDialog extends HookConsumerWidget {
+class CreateChatDialog extends ConsumerStatefulWidget {
   const CreateChatDialog({super.key});
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  ConsumerState<CreateChatDialog> createState() => _CreateChatDialogState();
+}
+
+class _CreateChatDialogState extends ConsumerState<CreateChatDialog> {
+  @override
+  Widget build(BuildContext context,) {
     // Local state with hooks
     final searchController = useTextEditingController();
     final selectedUser = useState<UserModel?>(null);

@@ -17,8 +17,8 @@ _$MessageModelImpl _$$MessageModelImplFromJson(Map<String, dynamic> json) =>
       attachmentUrl: json['attachmentUrl'] as String?,
       attachmentName: json['attachmentName'] as String?,
       messageType:
-          $enumDecodeNullable(_$AttachmentTypeEnumMap, json['messageType']) ??
-              AttachmentType.text,
+          $enumDecodeNullable(_$MessageTypeEnumMap, json['messageType']) ??
+              MessageType.text,
       updatedAt: json['updatedAt'] == null
           ? null
           : DateTime.parse(json['updatedAt'] as String),
@@ -35,15 +35,15 @@ Map<String, dynamic> _$$MessageModelImplToJson(_$MessageModelImpl instance) =>
       'text': instance.text,
       'attachmentUrl': instance.attachmentUrl,
       'attachmentName': instance.attachmentName,
-      'messageType': _$AttachmentTypeEnumMap[instance.messageType]!,
+      'messageType': _$MessageTypeEnumMap[instance.messageType]!,
       'updatedAt': instance.updatedAt?.toIso8601String(),
       'isRead': instance.isRead,
     };
 
-const _$AttachmentTypeEnumMap = {
-  AttachmentType.text: 'text',
-  AttachmentType.image: 'image',
-  AttachmentType.video: 'video',
-  AttachmentType.file: 'file',
-  AttachmentType.audio: 'audio',
+const _$MessageTypeEnumMap = {
+  MessageType.text: 'text',
+  MessageType.image: 'image',
+  MessageType.video: 'video',
+  MessageType.file: 'file',
+  MessageType.audio: 'audio',
 };

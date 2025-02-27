@@ -14,7 +14,6 @@ class Users extends Table {
   TextColumn get username => text()();
   TextColumn get avatarUrl => text().nullable()();
   DateTimeColumn get createdAt => dateTime()();
-  DateTimeColumn get lastSeen => dateTime()();
   BoolColumn get isOnline => boolean().withDefault(const Constant(false))();
   
   @override
@@ -25,6 +24,9 @@ class Chats extends Table {
   TextColumn get id => text()();
   DateTimeColumn get createdAt => dateTime()();
   DateTimeColumn get lastMessageAt => dateTime()();
+  TextColumn get lastMessageText => text().nullable()();
+  TextColumn get lastMessageType => text().nullable()();
+  BoolColumn get lastMessageIsMe => boolean().withDefault(const Constant(false))();
   BoolColumn get isSynced => boolean().withDefault(const Constant(true))();
   
   @override
@@ -168,3 +170,5 @@ LazyDatabase _openConnection() => LazyDatabase(() async {
     final file = File(p.join(dbFolder.path, 'chat_db.sqlite'));
     return NativeDatabase(file);
   });
+
+  

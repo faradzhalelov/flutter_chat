@@ -15,7 +15,7 @@ class MessageModel with _$MessageModel {
     String? text,
     String? attachmentUrl,
     String? attachmentName,
-    @Default(AttachmentType.text) AttachmentType messageType,
+    @Default(MessageType.text) MessageType messageType,
     DateTime? updatedAt,
     @Default(false) bool isRead,
   }) = _MessageModel;
@@ -43,20 +43,20 @@ class MessageModel with _$MessageModel {
         isRead: data['is_read'] as bool? ?? false,
       );
 
-  static AttachmentType _mapMessageTypeToAttachmentType(String? messageType) {
+  static MessageType _mapMessageTypeToAttachmentType(String? messageType) {
     switch (messageType) {
       case 'text':
-        return AttachmentType.text;
+        return MessageType.text;
       case 'image':
-        return AttachmentType.image;
+        return MessageType.image;
       case 'video':
-        return AttachmentType.video;
+        return MessageType.video;
       case 'file':
-        return AttachmentType.file;
+        return MessageType.file;
       case 'audio':
-        return AttachmentType.audio;
+        return MessageType.audio;
       default:
-        return AttachmentType.text;
+        return MessageType.text;
     }
   }
 }

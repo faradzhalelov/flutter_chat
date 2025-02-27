@@ -1,6 +1,6 @@
 // lib/core/lifecycle/app_lifecycle_manager.dart
 import 'package:flutter/material.dart';
-import 'package:flutter_chat/core/auth/service/auth_service.dart';
+import 'package:flutter_chat/features/auth/domain/service/auth_service.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 

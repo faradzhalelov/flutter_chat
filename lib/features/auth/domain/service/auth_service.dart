@@ -1,9 +1,10 @@
 // lib/core/services/auth_service.dart
 import 'dart:developer';
 import 'dart:io';
+
 import 'package:flutter/material.dart';
-import 'package:flutter_chat/features/chat/data/models/user.dart';
 import 'package:flutter_chat/features/common/splash_view.dart';
+import 'package:flutter_chat/features/profile/data/models/user.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:path/path.dart' as path;
@@ -111,7 +112,6 @@ class AuthState extends _$AuthState {
           'email': email,
           'username': username,
           'created_at': DateTime.now().toIso8601String(),
-          'last_seen': DateTime.now().toIso8601String(),
         });
 
         state = AsyncData(response.user);
@@ -193,7 +193,6 @@ class AuthState extends _$AuthState {
       await supabase.Supabase.instance.client.from('users').update({
         'username': username,
         if (avatarUrl != null) 'avatar_url': avatarUrl,
-        'last_seen': DateTime.now().toIso8601String(),
       }).eq('id', user.id);
 
       // Return the current user

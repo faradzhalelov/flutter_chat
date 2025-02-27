@@ -4,96 +4,69 @@ import 'package:flutter/material.dart';
 import 'package:flutter_chat/app/theme/colors.dart';
 import 'package:flutter_chat/app/theme/icons.dart';
 import 'package:flutter_chat/app/theme/text_styles.dart';
-import 'package:flutter_chat/core/auth/service/auth_service.dart';
-import 'package:flutter_chat/features/chat/data/models/chat.dart';
+import 'package:flutter_chat/features/auth/domain/service/auth_service.dart';
 import 'package:flutter_chat/features/chat_list/components/create_chat_dialog.dart';
+import 'package:flutter_chat/features/chat_list/data/models/chat.dart';
 import 'package:flutter_chat/features/chat_list/presentation/components/chat_list_item.dart';
 import 'package:flutter_chat/features/chat_list/presentation/view_model/chat_list_view_model.dart';
 import 'package:flutter_chat/features/profile/presentation/view/profile_view.dart';
-import 'package:flutter_hooks/flutter_hooks.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
-import 'package:hooks_riverpod/hooks_riverpod.dart';
 
-class ChatListView extends HookConsumerWidget {
+class ChatListView extends ConsumerStatefulWidget {
   const ChatListView({super.key});
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    // Watch the chat list view model
+  ConsumerState<ChatListView> createState() => _ChatListViewState();
+}
+
+class _ChatListViewState extends ConsumerState<ChatListView> {
+  final focusNode = FocusNode();
+  final searchProvider = StateProvider<String>((ref) => '');
+
+  @override
+  void dispose() {
+    focusNode.dispose();
+    super.dispose();
+  }
+
+  AsyncValue<List<ChatModel>> filteredChatListState(
+      String searchQuery, AsyncValue<List<ChatModel>> chatListState) {
+    final query = searchQuery.toLowerCase();
+
+    // Filter by both username and last message content
+    final filteredList = chatListState.value!.where((chat) {
+      final usernameMatch = chat.user.username.toLowerCase().contains(query);
+      final lastMessageMatch =
+          chat.lastMessageText?.toLowerCase().contains(query) ?? false;
+
+      return usernameMatch || lastMessageMatch;
+    }).toList();
+    return AsyncValue.data(filteredList);
+  }
+
+  @override
+  Widget build(
+    BuildContext context,
+  ) {
+    //
     final chatListState = ref.watch(chatListViewModelProvider);
     final viewModel = ref.watch(chatListViewModelProvider.notifier);
-
-    // Using hooks for search functionality
-    final searchController = useTextEditingController();
-    final searchFocusNode = useFocusNode();
-
-    // Create a state for the search query that will trigger rebuilds
-    final searchQuery = useState('');
-    final isSearching = useState(false);
-
-    // Listen to search controller changes for visual indicator
-    useEffect(
-      () {
-        void listener() {
-          isSearching.value = searchController.text.isNotEmpty;
-          // Update the searchQuery state to trigger the useMemoized hook
-          searchQuery.value = searchController.text;
-        }
-
-        searchController.addListener(listener);
-
-        return () {
-          searchController.removeListener(listener);
-        };
-      },
-      [searchController],
-    );
+    //
+    final searchQuery = ref.watch(searchProvider);
 
     // Handle search functionality with memoization to avoid unnecessary rebuilds
     // Now depends on searchQuery.value instead of searchController.text
-    final filteredChats = useMemoized(
-      () {
-        if (!chatListState.hasValue || searchQuery.value.isEmpty) {
-          return chatListState;
-        }
-
-        final query = searchQuery.value.toLowerCase();
-
-        // Filter by both username and last message content
-        final filteredList = chatListState.value!.where((chat) {
-          final usernameMatch =
-              chat.user.username.toLowerCase().contains(query);
-          final lastMessageMatch =
-              chat.lastMessage?.text?.toLowerCase().contains(query) ?? false;
-
-          return usernameMatch || lastMessageMatch;
-        }).toList();
-
-        return AsyncValue.data(filteredList);
-      },
-      [chatListState, searchQuery.value], // Depend on searchQuery.value
-    );
-
-    // Refresh effect - ensures the chat list is up to date when component mounts
-    useEffect(
-      () {
-        // Force a refresh when the component first loads
-        // This helps with the issue of chats not showing immediately
-        WidgetsBinding.instance.addPostFrameCallback((_) {
-          viewModel.refresh();
-        });
-
-        return null;
-      },
-      [],
-    );
+    final filteredChats = (!chatListState.hasValue || searchQuery.isEmpty)
+        ? chatListState
+        : filteredChatListState(searchQuery, chatListState);
 
     return Scaffold(
       backgroundColor: AppColors.appBackground,
-      appBar: _buildAppBar(context, ref),
+      appBar: _buildAppBar(),
       floatingActionButton: FloatingActionButton(
         backgroundColor: AppColors.black,
-        onPressed: () async => _showCreateChatDialog(context),
+        onPressed: () async => _showCreateChatDialog(),
         tooltip: 'Создать чат',
         child: const Icon(
           Icomoon.plusS,
@@ -102,16 +75,15 @@ class ChatListView extends HookConsumerWidget {
       ),
       body: Column(
         children: [
-          _buildSearchBar(searchController, searchFocusNode, isSearching),
+          _buildSearchBar(),
           const Divider(color: AppColors.divider),
-          _buildChatList(context, filteredChats, viewModel),
+          _buildChatList(filteredChats, viewModel),
         ],
       ),
     );
   }
 
-  PreferredSizeWidget _buildAppBar(BuildContext context, WidgetRef ref) =>
-      AppBar(
+  PreferredSizeWidget _buildAppBar() => AppBar(
         backgroundColor: AppColors.appBackground,
         title: Text(
           'Чаты',
@@ -143,12 +115,7 @@ class ChatListView extends HookConsumerWidget {
         toolbarHeight: 60,
       );
 
-  Widget _buildSearchBar(
-    TextEditingController controller,
-    FocusNode focusNode,
-    ValueNotifier<bool> isSearching,
-  ) =>
-      Padding(
+  Widget _buildSearchBar() => Padding(
         padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 24),
         child: Container(
           height: 42,
@@ -157,9 +124,10 @@ class ChatListView extends HookConsumerWidget {
             borderRadius: BorderRadius.circular(12),
           ),
           child: TextField(
-            controller: controller,
             focusNode: focusNode,
             style: AppTextStyles.medium,
+            onChanged: (value) =>
+                ref.read(searchProvider.notifier).update((state) => value),
             decoration: InputDecoration(
               filled: false,
               hintText: 'Поиск',
@@ -171,11 +139,11 @@ class ChatListView extends HookConsumerWidget {
                 color: AppColors.gray,
                 size: 24,
               ),
-              suffixIcon: isSearching.value
+              suffixIcon: ref.watch(searchProvider).isNotEmpty
                   ? IconButton(
                       icon: const Icon(Icons.clear, color: AppColors.gray),
                       onPressed: () {
-                        controller.clear();
+                        ref.read(searchProvider.notifier).update((state) => '');
                         focusNode.unfocus();
                       },
                     )
@@ -192,7 +160,6 @@ class ChatListView extends HookConsumerWidget {
       );
 
   Widget _buildChatList(
-    BuildContext context,
     AsyncValue<List<ChatModel>> chatListState,
     ChatListViewModel viewModel,
   ) =>
@@ -203,8 +170,8 @@ class ChatListView extends HookConsumerWidget {
               return _buildEmptyState();
             }
             chats.sort((a, b) {
-              final aTime = a.lastMessageTime;
-              final bTime = a.lastMessageTime;
+              final aTime = a.lastMessageAt;
+              final bTime = a.lastMessageAt;
               if (aTime != null && bTime != null) {
                 return aTime.compareTo(bTime);
               } else if (aTime != null && bTime == null) {
@@ -215,12 +182,12 @@ class ChatListView extends HookConsumerWidget {
                 return b.createdAt.compareTo(a.createdAt);
               }
             });
-            return _buildChatListItems(context, chats, viewModel);
+            return _buildChatListItems( chats, viewModel);
           },
           loading: () => const Center(
             child: CircularProgressIndicator(),
           ),
-          error: (error, stack) => _buildErrorState(context, error, viewModel),
+          error: (error, stack) => _buildErrorState(error, viewModel),
         ),
       );
 
@@ -253,7 +220,6 @@ class ChatListView extends HookConsumerWidget {
       );
 
   Widget _buildChatListItems(
-    BuildContext context,
     List<ChatModel> chats,
     ChatListViewModel viewModel,
   ) =>
@@ -267,14 +233,13 @@ class ChatListView extends HookConsumerWidget {
               chat: chat,
               onTap: () => context.go('/chat/${chat.id}'),
               onDismissed: (_) =>
-                  _handleChatDismissed(context, chat, viewModel),
+                  _handleChatDismissed(chat, viewModel),
             );
           },
         ),
       );
 
   Widget _buildErrorState(
-    BuildContext context,
     Object error,
     ChatListViewModel viewModel,
   ) =>
@@ -317,7 +282,6 @@ class ChatListView extends HookConsumerWidget {
       );
 
   void _handleChatDismissed(
-    BuildContext context,
     ChatModel chat,
     ChatListViewModel viewModel,
   ) {
@@ -331,10 +295,8 @@ class ChatListView extends HookConsumerWidget {
     );
   }
 
-  Future<void> _showCreateChatDialog(
-    BuildContext context,
-  ) async =>  showDialog(
-      context: context,
-      builder: (dialogContext) => const CreateChatDialog(),
-    );
+  Future<void> _showCreateChatDialog() async => showDialog(
+        context: context,
+        builder: (dialogContext) => const CreateChatDialog(),
+      );
 }

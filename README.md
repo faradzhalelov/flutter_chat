@@ -29,4 +29,12 @@
     - test users: 
         - email= test@test.com password= TestPassword=102030
         - email= test2@test.com password= TestPassword=102030
-        
+
+### How it works:
+    - auth:
+
+    - chat list:
+
+    - chat:
+
+    - profile:

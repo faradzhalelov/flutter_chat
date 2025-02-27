@@ -1,20 +1,18 @@
 // lib/data/repositories/supabase_chat_repository.dart
 import 'dart:io';
 
-import 'package:flutter_chat/core/supabase/repository/chat_repository.dart';
 import 'package:flutter_chat/core/supabase/service/supabase_service.dart';
-import 'package:flutter_chat/features/chat/data/models/atachment_type.dart';
-import 'package:flutter_chat/features/chat/data/models/chat.dart';
-import 'package:flutter_chat/features/chat/data/models/chat_member.dart';
 import 'package:flutter_chat/features/chat/data/models/message.dart';
-import 'package:flutter_chat/features/chat/data/models/user.dart';
+import 'package:flutter_chat/features/chat_list/data/models/chat.dart';
+import 'package:flutter_chat/features/chat_list/data/models/chat_member.dart';
+import 'package:flutter_chat/features/profile/data/models/user.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:path/path.dart' as path;
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:uuid/uuid.dart';
 
 /// Implementation of ChatRepository using Supabase as the backend
-class SupabaseChatRepository implements ChatRepository {
+class SupabaseChatRepository  {
   
   SupabaseChatRepository();
   

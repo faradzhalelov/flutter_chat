@@ -26,7 +26,6 @@ mixin _$UserModel {
   DateTime get createdAt => throw _privateConstructorUsedError;
   bool get isOnline => throw _privateConstructorUsedError;
   String? get avatarUrl => throw _privateConstructorUsedError;
-  DateTime? get lastSeen => throw _privateConstructorUsedError;
 
   /// Serializes this UserModel to a JSON map.
   Map<String, dynamic> toJson() => throw _privateConstructorUsedError;
@@ -49,8 +48,7 @@ abstract class $UserModelCopyWith<$Res> {
       String username,
       DateTime createdAt,
       bool isOnline,
-      String? avatarUrl,
-      DateTime? lastSeen});
+      String? avatarUrl});
 }
 
 /// @nodoc
@@ -74,7 +72,6 @@ class _$UserModelCopyWithImpl<$Res, $Val extends UserModel>
     Object? createdAt = null,
     Object? isOnline = null,
     Object? avatarUrl = freezed,
-    Object? lastSeen = freezed,
   }) {
     return _then(_value.copyWith(
       id: null == id
@@ -101,10 +98,6 @@ class _$UserModelCopyWithImpl<$Res, $Val extends UserModel>
           ? _value.avatarUrl
           : avatarUrl // ignore: cast_nullable_to_non_nullable
               as String?,
-      lastSeen: freezed == lastSeen
-          ? _value.lastSeen
-          : lastSeen // ignore: cast_nullable_to_non_nullable
-              as DateTime?,
     ) as $Val);
   }
 }
@@ -123,8 +116,7 @@ abstract class _$$UserModelImplCopyWith<$Res>
       String username,
       DateTime createdAt,
       bool isOnline,
-      String? avatarUrl,
-      DateTime? lastSeen});
+      String? avatarUrl});
 }
 
 /// @nodoc
@@ -146,7 +138,6 @@ class __$$UserModelImplCopyWithImpl<$Res>
     Object? createdAt = null,
     Object? isOnline = null,
     Object? avatarUrl = freezed,
-    Object? lastSeen = freezed,
   }) {
     return _then(_$UserModelImpl(
       id: null == id
@@ -173,10 +164,6 @@ class __$$UserModelImplCopyWithImpl<$Res>
           ? _value.avatarUrl
           : avatarUrl // ignore: cast_nullable_to_non_nullable
               as String?,
-      lastSeen: freezed == lastSeen
-          ? _value.lastSeen
-          : lastSeen // ignore: cast_nullable_to_non_nullable
-              as DateTime?,
     ));
   }
 }
@@ -190,8 +177,7 @@ class _$UserModelImpl implements _UserModel {
       required this.username,
       required this.createdAt,
       this.isOnline = false,
-      this.avatarUrl,
-      this.lastSeen});
+      this.avatarUrl});
 
   factory _$UserModelImpl.fromJson(Map<String, dynamic> json) =>
       _$$UserModelImplFromJson(json);
@@ -209,12 +195,10 @@ class _$UserModelImpl implements _UserModel {
   final bool isOnline;
   @override
   final String? avatarUrl;
-  @override
-  final DateTime? lastSeen;
 
   @override
   String toString() {
-    return 'UserModel(id: $id, email: $email, username: $username, createdAt: $createdAt, isOnline: $isOnline, avatarUrl: $avatarUrl, lastSeen: $lastSeen)';
+    return 'UserModel(id: $id, email: $email, username: $username, createdAt: $createdAt, isOnline: $isOnline, avatarUrl: $avatarUrl)';
   }
 
   @override
@@ -231,15 +215,13 @@ class _$UserModelImpl implements _UserModel {
             (identical(other.isOnline, isOnline) ||
                 other.isOnline == isOnline) &&
             (identical(other.avatarUrl, avatarUrl) ||
-                other.avatarUrl == avatarUrl) &&
-            (identical(other.lastSeen, lastSeen) ||
-                other.lastSeen == lastSeen));
+                other.avatarUrl == avatarUrl));
   }
 
   @JsonKey(includeFromJson: false, includeToJson: false)
   @override
-  int get hashCode => Object.hash(runtimeType, id, email, username, createdAt,
-      isOnline, avatarUrl, lastSeen);
+  int get hashCode => Object.hash(
+      runtimeType, id, email, username, createdAt, isOnline, avatarUrl);
 
   /// Create a copy of UserModel
   /// with the given fields replaced by the non-null parameter values.
@@ -264,8 +246,7 @@ abstract class _UserModel implements UserModel {
       required final String username,
       required final DateTime createdAt,
       final bool isOnline,
-      final String? avatarUrl,
-      final DateTime? lastSeen}) = _$UserModelImpl;
+      final String? avatarUrl}) = _$UserModelImpl;
 
   factory _UserModel.fromJson(Map<String, dynamic> json) =
       _$UserModelImpl.fromJson;
@@ -282,8 +263,6 @@ abstract class _UserModel implements UserModel {
   bool get isOnline;
   @override
   String? get avatarUrl;
-  @override
-  DateTime? get lastSeen;
 
   /// Create a copy of UserModel
   /// with the given fields replaced by the non-null parameter values.

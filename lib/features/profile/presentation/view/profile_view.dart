@@ -3,7 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_chat/app/theme/colors.dart';
 import 'package:flutter_chat/app/theme/icons.dart';
 import 'package:flutter_chat/app/theme/text_styles.dart';
-import 'package:flutter_chat/core/auth/service/auth_service.dart';
+import 'package:flutter_chat/features/auth/domain/service/auth_service.dart';
 import 'package:flutter_chat/features/auth/presentation/view/components/auth_widgets.dart';
 import 'package:flutter_chat/features/profile/presentation/view_model/profile_view_model.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';

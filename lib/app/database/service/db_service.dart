@@ -130,7 +130,6 @@ class SyncService {
         username: user['username'] as String,
         avatarUrl: Value<String?>(user['avatar_url'] as String?),
         createdAt: DateTime.parse(user['created_at'] as String),
-        lastSeen: DateTime.parse(user['last_seen'] as String),
         isOnline: Value<bool>(user['is_online'] as bool? ?? false),
       ),);
     }
@@ -407,7 +406,6 @@ class SyncService {
       await _localDb.saveUser(UsersCompanion(
         id: Value(userId),
         isOnline: Value(isOnline),
-        lastSeen: Value(now),
       ),);
       
       // Update in Supabase

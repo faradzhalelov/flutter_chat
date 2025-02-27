@@ -91,7 +91,7 @@ class MessageBubble extends StatelessWidget {
               ),
 
             // Image attachment
-            if (message.messageType == AttachmentType.image &&
+            if (message.messageType == MessageType.image &&
                 message.attachmentUrl != null)
               Padding(
                 padding: const EdgeInsets.only(top: 8.0),
@@ -126,7 +126,7 @@ class MessageBubble extends StatelessWidget {
                     Text(
                       _formatTime(message.createdAt),
                       style: AppTextStyles.extraSmall.copyWith(
-                        color: isMe ? AppColors.darkGreen: AppColors.darkGray,
+                        color: isMe ? AppColors.darkGreen : AppColors.darkGray,
                       ),
                     ),
                     if (isMe) ...[

@@ -4,10 +4,8 @@ import 'dart:io';
 
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_chat/app/database/repository/db_repository.dart';
-import 'package:flutter_chat/core/supabase/repository/chat_repository.dart';
-import 'package:flutter_chat/core/supabase/repository/supabase_repository.dart';
 import 'package:flutter_chat/core/supabase/service/supabase_service.dart';
+import 'package:flutter_chat/features/chat/data/repositories/provider/chat_repository_provider.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:record/record.dart';
@@ -18,14 +16,11 @@ part 'chat_view_model.g.dart';
 /// ViewModel for the chat screen using the abstract ChatRepository
 @riverpod
 class ChatViewModel extends _$ChatViewModel {
-  late final ChatRepository _repository;
   final _audioRecorder = AudioRecorder();
   String? _recordingPath;
 
   @override
   FutureOr<void> build(String chatId) {
-    _repository = ref.watch(chatRepositoryProvider);
-
     // Clean up resources when the provider is disposed
     ref.onDispose(() {
       _audioRecorder.dispose();
@@ -39,7 +34,7 @@ class ChatViewModel extends _$ChatViewModel {
     state = const AsyncValue.loading();
 
     try {
-      await _repository.sendTextMessage(chatId, text);
+      await ref.read(chatRepositoryProvider).sendTextMessage(chatId, text);
       state = const AsyncValue.data(null);
     } catch (e, st) {
       state = AsyncValue.error(e, st);
@@ -57,8 +52,8 @@ class ChatViewModel extends _$ChatViewModel {
 
     try {
       final userId = supabase.auth.currentUser!.id;
-      final attachment = await ref.read(fileUploadServiceProvider).uploadImage(pickedFile, chatId, userId);
-      await _repository.sendImageMessage(chatId, attachment, pickedFile.name);
+      final attachment = await ref.read(chatRepositoryProvider).uploadImage(pickedFile, chatId, userId);
+      await ref.read(chatRepositoryProvider).sendFileMessage(chatId, attachment, pickedFile.name);
       state = const AsyncValue.data(null);
     } catch (e, st) {
       log('sendImageMessage:$e $st');

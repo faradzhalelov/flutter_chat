@@ -28,7 +28,7 @@ mixin _$MessageModel {
   String? get text => throw _privateConstructorUsedError;
   String? get attachmentUrl => throw _privateConstructorUsedError;
   String? get attachmentName => throw _privateConstructorUsedError;
-  AttachmentType get messageType => throw _privateConstructorUsedError;
+  MessageType get messageType => throw _privateConstructorUsedError;
   DateTime? get updatedAt => throw _privateConstructorUsedError;
   bool get isRead => throw _privateConstructorUsedError;
 
@@ -57,7 +57,7 @@ abstract class $MessageModelCopyWith<$Res> {
       String? text,
       String? attachmentUrl,
       String? attachmentName,
-      AttachmentType messageType,
+      MessageType messageType,
       DateTime? updatedAt,
       bool isRead});
 }
@@ -125,7 +125,7 @@ class _$MessageModelCopyWithImpl<$Res, $Val extends MessageModel>
       messageType: null == messageType
           ? _value.messageType
           : messageType // ignore: cast_nullable_to_non_nullable
-              as AttachmentType,
+              as MessageType,
       updatedAt: freezed == updatedAt
           ? _value.updatedAt
           : updatedAt // ignore: cast_nullable_to_non_nullable
@@ -155,7 +155,7 @@ abstract class _$$MessageModelImplCopyWith<$Res>
       String? text,
       String? attachmentUrl,
       String? attachmentName,
-      AttachmentType messageType,
+      MessageType messageType,
       DateTime? updatedAt,
       bool isRead});
 }
@@ -221,7 +221,7 @@ class __$$MessageModelImplCopyWithImpl<$Res>
       messageType: null == messageType
           ? _value.messageType
           : messageType // ignore: cast_nullable_to_non_nullable
-              as AttachmentType,
+              as MessageType,
       updatedAt: freezed == updatedAt
           ? _value.updatedAt
           : updatedAt // ignore: cast_nullable_to_non_nullable
@@ -246,7 +246,7 @@ class _$MessageModelImpl implements _MessageModel {
       this.text,
       this.attachmentUrl,
       this.attachmentName,
-      this.messageType = AttachmentType.text,
+      this.messageType = MessageType.text,
       this.updatedAt,
       this.isRead = false});
 
@@ -271,7 +271,7 @@ class _$MessageModelImpl implements _MessageModel {
   final String? attachmentName;
   @override
   @JsonKey()
-  final AttachmentType messageType;
+  final MessageType messageType;
   @override
   final DateTime? updatedAt;
   @override
@@ -348,7 +348,7 @@ abstract class _MessageModel implements MessageModel {
       final String? text,
       final String? attachmentUrl,
       final String? attachmentName,
-      final AttachmentType messageType,
+      final MessageType messageType,
       final DateTime? updatedAt,
       final bool isRead}) = _$MessageModelImpl;
 
@@ -372,7 +372,7 @@ abstract class _MessageModel implements MessageModel {
   @override
   String? get attachmentName;
   @override
-  AttachmentType get messageType;
+  MessageType get messageType;
   @override
   DateTime? get updatedAt;
   @override

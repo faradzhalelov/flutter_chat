@@ -2,7 +2,7 @@
 import 'dart:developer';
 
 import 'package:flutter/material.dart';
-import 'package:flutter_chat/core/auth/service/auth_service.dart';
+import 'package:flutter_chat/features/auth/domain/service/auth_service.dart';
 import 'package:flutter_chat/core/utils/validators/validators.dart';
 import 'package:flutter_chat/features/common/splash_view.dart';
 import 'package:go_router/go_router.dart';

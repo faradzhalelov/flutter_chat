@@ -6,7 +6,7 @@ import 'package:flutter_chat/app/router/router.dart';
 import 'package:flutter_chat/app/theme/icons.dart';
 import 'package:flutter_chat/app/theme/text_styles.dart';
 import 'package:flutter_chat/app/theme/theme.dart';
-import 'package:flutter_chat/core/lifecycle/lifecycle.dart';
+import 'package:flutter_chat/core/lifecycle/lifecycle_manager.dart';
 // ignore: depend_on_referenced_packages
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';

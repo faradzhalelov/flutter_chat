@@ -1,4 +1,3 @@
-
 import 'package:flutter/material.dart';
 import 'package:flutter_chat/app/theme/colors.dart';
 import 'package:flutter_chat/app/theme/icons.dart';
@@ -6,8 +5,7 @@ import 'package:flutter_chat/app/theme/text_styles.dart';
 import 'package:flutter_chat/core/utils/extentions/date_extensions.dart';
 import 'package:flutter_chat/core/utils/typedef/typedef.dart';
 import 'package:flutter_chat/features/chat/data/models/atachment_type.dart';
-import 'package:flutter_chat/features/chat/data/models/chat.dart';
-import 'package:flutter_chat/features/chat/data/models/message.dart';
+import 'package:flutter_chat/features/chat_list/data/models/chat.dart';
 import 'package:flutter_chat/features/common/widgets/user_avatar.dart';
 import 'package:intl/intl.dart';
 
@@ -24,10 +22,6 @@ class ChatListItem extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final lastMessage = chat.lastMessage;
-    final hasUnread =
-        lastMessage != null && !lastMessage.isMe && !lastMessage.isRead;
-
     // Determine avatar color index based on the first letter of the name
     final colorIndex = chat.user.username.isNotEmpty
         ? chat.user.username.codeUnitAt(0) % 3
@@ -83,7 +77,7 @@ class ChatListItem extends StatelessWidget {
                               ),
                             ),
                             Text(
-                              _formatTime(chat.lastMessageTime),
+                              _formatTime(chat.lastMessageAt),
                               style: AppTextStyles.small.copyWith(
                                 color: AppColors.darkGray,
                               ),
@@ -95,7 +89,7 @@ class ChatListItem extends StatelessWidget {
                         // Message preview
                         Row(
                           children: [
-                            if (lastMessage?.isMe ?? false)
+                            if (chat.lastMessageIsMe ?? false)
                               Padding(
                                 padding: const EdgeInsets.only(right: 4),
                                 child: Text(
@@ -106,23 +100,14 @@ class ChatListItem extends StatelessWidget {
                               ),
                             Expanded(
                               child: Text(
-                                _getMessagePreview(lastMessage),
+                                _getMessagePreview(
+                                    chat.lastMessageType, chat.lastMessageText),
                                 style: AppTextStyles.extraSmall
                                     .copyWith(color: AppColors.darkGray),
                                 maxLines: 1,
                                 overflow: TextOverflow.ellipsis,
                               ),
                             ),
-                            if (hasUnread)
-                              Container(
-                                margin: const EdgeInsets.only(left: 4),
-                                width: 8,
-                                height: 8,
-                                decoration: const BoxDecoration(
-                                  color: AppColors.myMessageBubble,
-                                  shape: BoxShape.circle,
-                                ),
-                              ),
                           ],
                         ),
                       ],
@@ -137,28 +122,23 @@ class ChatListItem extends StatelessWidget {
     );
   }
 
-  String _getMessagePreview(MessageModel? message) {
-    if (message == null) {
+  String _getMessagePreview(MessageType? messageType, String? text) {
+    if (messageType == null) {
       return '';
     }
-
-    // For text messages
-    if (message.text != null && message.text!.isNotEmpty) {
-      return message.text!;
-    }
-
     // For attachments
-    switch (message.messageType) {
-      case AttachmentType.image:
+    switch (messageType) {
+      case MessageType.image:
         return 'Фото';
-      case AttachmentType.video:
+      case MessageType.video:
         return 'Видео';
-      case AttachmentType.file:
+      case MessageType.file:
         return 'Файл';
-      case AttachmentType.audio:
+      case MessageType.audio:
         return 'Голосовое сообщение';
-      default:
-        return '';
+      case MessageType.text:
+        return text ?? '';
+     
     }
   }
 

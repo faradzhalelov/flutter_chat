@@ -1,26 +1,28 @@
 // GENERATED CODE - DO NOT MODIFY BY HAND
 
-part of 'chat_list_view_model.dart';
+part of 'file_upload_service_provider.dart';
 
 // **************************************************************************
 // RiverpodGenerator
 // **************************************************************************
 
-String _$chatListViewModelHash() => r'd01963049cc6c4b8def04d1d87bc08e1cacfdcd9';
+String _$fileUploadServiceHash() => r'8d97c08462709c6cda4f5c3520dda4cf72784ecb';
 
-/// See also [ChatListViewModel].
-@ProviderFor(ChatListViewModel)
-final chatListViewModelProvider = AutoDisposeNotifierProvider<ChatListViewModel,
-    AsyncValue<List<ChatModel>>>.internal(
-  ChatListViewModel.new,
-  name: r'chatListViewModelProvider',
+/// See also [fileUploadService].
+@ProviderFor(fileUploadService)
+final fileUploadServiceProvider =
+    AutoDisposeProvider<FileUploadService>.internal(
+  fileUploadService,
+  name: r'fileUploadServiceProvider',
   debugGetCreateSourceHash: const bool.fromEnvironment('dart.vm.product')
       ? null
-      : _$chatListViewModelHash,
+      : _$fileUploadServiceHash,
   dependencies: null,
   allTransitiveDependencies: null,
 );
 
-typedef _$ChatListViewModel = AutoDisposeNotifier<AsyncValue<List<ChatModel>>>;
+@Deprecated('Will be removed in 3.0. Use Ref instead')
+// ignore: unused_element
+typedef FileUploadServiceRef = AutoDisposeProviderRef<FileUploadService>;
 // ignore_for_file: type=lint
 // ignore_for_file: subtype_of_sealed_class, invalid_use_of_internal_member, invalid_use_of_visible_for_testing_member, deprecated_member_use_from_same_package
