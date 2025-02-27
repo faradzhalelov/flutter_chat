@@ -155,7 +155,7 @@ class _MessageInputState extends ConsumerState<MessageInput> with SingleTickerPr
           ),
           child: SafeArea(
             child: Container(
-              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+              padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 4),
               child: Row(
                 children: [
                   // Attachment button
@@ -173,7 +173,8 @@ class _MessageInputState extends ConsumerState<MessageInput> with SingleTickerPr
                   Expanded(
                     child: Container(
                       height: 42,
-                      margin: const EdgeInsets.symmetric(vertical: 14),
+                      constraints: const BoxConstraints(maxWidth: 235),
+                      margin: const EdgeInsets.symmetric(vertical: 14, horizontal: 8),
                       decoration: BoxDecoration(
                         color: AppColors.searchBackground,
                         borderRadius: BorderRadius.circular(12),

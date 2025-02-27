@@ -67,6 +67,7 @@ class _ChatViewState extends ConsumerState<ChatView> {
     return Scaffold(
       backgroundColor: AppColors.appBackground,
       appBar: AppBar(
+        toolbarHeight: 80,
         backgroundColor: AppColors.appBackground,
         foregroundColor: AppColors.appBackground,
         leading: IconButton(
@@ -80,7 +81,7 @@ class _ChatViewState extends ConsumerState<ChatView> {
                   UserAvatar(
                     userName: chat.user.username,
                     avatarUrl: chat.user.avatarUrl,
-                    size: 40,
+                    size: 50,
                   ),
                   const SizedBox(width: 8),
                   Column(

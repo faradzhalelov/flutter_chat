@@ -170,8 +170,8 @@ class AppTheme {
       const MessageBubbleThemeData(
         myMessageColor: AppColors.myMessageBubble,
         otherMessageColor: AppColors.otherMessageBubble,
-        myMessageTextColor: AppColors.primaryText,
-        otherMessageTextColor: AppColors.primaryText,
+        myMessageTextColor: AppColors.myMessageText,
+        otherMessageTextColor: AppColors.otherMessageText,
         timeTextColor: AppColors.timeStampText,
         myBorderRadius: BorderRadius.only(
           topLeft: Radius.circular(16),
