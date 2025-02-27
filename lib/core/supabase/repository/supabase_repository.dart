@@ -454,7 +454,7 @@ final chatListStreamProvider = StreamProvider<List<ChatModel>>((ref) async* {
   final repository = ref.watch(chatRepositoryProvider);
   
   // Initial load
-  yield*  repository.getChatsForCurrentUserStream();
+  yield* repository.getChatsForCurrentUserStream();
 });
 
 /// Stream provider for messages in a specific chat
