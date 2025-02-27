@@ -1,3 +1,4 @@
+// features/chat_list/presentation/components/create_chat_dialog.dart
 import 'dart:developer';
 
 import 'package:flutter/material.dart';
@@ -5,147 +6,353 @@ import 'package:flutter_chat/app/theme/colors.dart';
 import 'package:flutter_chat/app/theme/icons.dart';
 import 'package:flutter_chat/app/theme/text_styles.dart';
 import 'package:flutter_chat/core/auth/service/auth_service.dart';
-import 'package:flutter_chat/core/supabase/repository/supabase_repository.dart';
 import 'package:flutter_chat/core/supabase/service/supabase_service.dart';
 import 'package:flutter_chat/features/chat/data/models/user.dart';
-import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:flutter_chat/features/chat_list/presentation/view_model/chat_list_view_model.dart';
+import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:go_router/go_router.dart';
+import 'package:hooks_riverpod/hooks_riverpod.dart';
 
-// Provider to fetch all users except the current user
-final allUsersProvider =
+// Provider to fetch users that don't have active chats with the current user
+final availableUsersProvider =
     AutoDisposeFutureProvider<List<UserModel>>((ref) async {
   final currentUser = ref.watch(currentUserProvider);
   if (currentUser == null) return [];
 
   try {
+    // Get all users except the current one
     final response = await supabase
         .from('users')
-        .select('id, username, email, created_at, last_seen, is_online')
+        .select(
+            'id, username, email, created_at, last_seen, is_online, avatar_url')
         .neq('id', currentUser.id);
-    final usersInBase =
+
+    final allUsers =
         response.map((userData) => UserModel.fromSupabase(userData)).toList();
-    final createdChats = ref.watch(chatListStreamProvider).asData?.value ?? [];
-    return usersInBase
-        .where(
-            (u) => !createdChats.map((e) => e.user.id).toList().contains(u.id))
+
+    // Get list of users who already have chats with the current user
+    final existingChats =
+        ref.watch(chatListViewModelProvider).asData?.value ?? [];
+    final existingChatUserIds =
+        existingChats.map((chat) => chat.user.id).toSet();
+
+    // Filter out users who already have chats
+    return allUsers
+        .where((user) => !existingChatUserIds.contains(user.id))
         .toList();
   } catch (e) {
-    log('Error fetching users: $e');
+    log('Error fetching available users: $e');
     return [];
   }
 });
 
-class CreateChatDialog extends ConsumerStatefulWidget {
+// Provider for filtering users by search query
+final filteredUsersProvider =
+    Provider.family<List<UserModel>, String>((ref, query) {
+  final usersAsync = ref.watch(availableUsersProvider);
+
+  return usersAsync.when(
+    data: (users) {
+      if (query.isEmpty) return users;
+
+      final lowercaseQuery = query.toLowerCase();
+      return users
+          .where(
+            (user) =>
+                user.username.toLowerCase().contains(lowercaseQuery) ||
+                user.email.toLowerCase().contains(lowercaseQuery),
+          )
+          .toList();
+    },
+    loading: () => [],
+    error: (_, __) => [],
+  );
+});
+
+class CreateChatDialog extends HookConsumerWidget {
   const CreateChatDialog({super.key});
 
   @override
-  ConsumerState<CreateChatDialog> createState() => _CreateChatDialogState();
-}
+  Widget build(BuildContext context, WidgetRef ref) {
+    // Local state with hooks
+    final searchController = useTextEditingController();
+    final selectedUser = useState<UserModel?>(null);
+    final isLoading = useState(false);
 
-class _CreateChatDialogState extends ConsumerState<CreateChatDialog> {
-  UserModel? _selectedUser;
+    // Watch providers
+    final usersAsync = ref.watch(availableUsersProvider);
+    final query = useState('');
 
-  @override
-  Widget build(BuildContext context) {
-    final usersAsync = ref.watch(allUsersProvider);
+    // Listen to search changes
+    useEffect(
+      () {
+        void listener() {
+          query.value = searchController.text;
+        }
 
-    return AlertDialog(
-      title: Text(
-        'Создать чат',
-        style: AppTextStyles.medium.copyWith(
-          fontWeight: FontWeight.bold,
-        ),
+        searchController.addListener(listener);
+        return () => searchController.removeListener(listener);
+      },
+      [searchController],
+    );
+
+    // Get filtered users based on search query
+    final filteredUsers = ref.watch(filteredUsersProvider(query.value));
+    final textFieldBorder = OutlineInputBorder(
+      borderRadius: BorderRadius.circular(12),
+      borderSide: const BorderSide(color: AppColors.divider),
+    );
+    return Dialog(
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(16),
       ),
-      content: usersAsync.when(
-        data: (users) => SizedBox(
-          width: double.maxFinite,
-          child: ListView.builder(
-            shrinkWrap: true,
-            itemCount: users.length,
-            itemBuilder: (context, index) {
-              final user = users[index];
-              return ListTile(
-                selectedTileColor: AppColors.gray,
-                title: Text(
-                  user.username,
-                  style: AppTextStyles.medium.copyWith(
-                    color: AppColors.black,
+      child: Padding(
+        padding: const EdgeInsets.all(16.0),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            Text(
+              'Создать чат',
+              style: AppTextStyles.medium.copyWith(
+                fontWeight: FontWeight.bold,
+              ),
+              textAlign: TextAlign.center,
+            ),
+            const SizedBox(height: 16),
+
+            // Search field
+            TextField(
+              controller: searchController,
+              decoration: InputDecoration(
+                hintText: 'Поиск пользователей',
+                prefixIcon: const Icon(Icomoon.searchS),
+                border: textFieldBorder,
+                filled: true,
+                fillColor: AppColors.searchBackground,
+                contentPadding: const EdgeInsets.symmetric(
+                  vertical: 10,
+                  horizontal: 12,
+                ),
+              ),
+              textInputAction: TextInputAction.search,
+            ),
+            const SizedBox(height: 16),
+
+            // User list
+            SizedBox(
+              height: 300,
+              child: usersAsync.when(
+                data: (_) {
+                  if (filteredUsers.isEmpty) {
+                    return _buildEmptyList(searchController.text.isNotEmpty);
+                  }
+
+                  return ListView.builder(
+                    shrinkWrap: true,
+                    itemCount: filteredUsers.length,
+                    itemBuilder: (context, index) {
+                      final user = filteredUsers[index];
+                      final isSelected = selectedUser.value?.id == user.id;
+
+                      return _buildUserListItem(
+                        user: user,
+                        isSelected: isSelected,
+                        onTap: () {
+                          selectedUser.value = isSelected ? null : user;
+                        },
+                      );
+                    },
+                  );
+                },
+                loading: () => const Center(child: CircularProgressIndicator()),
+                error: (error, _) => Center(
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      const Icon(Icomoon.error, color: Colors.red, size: 48),
+                      const SizedBox(height: 16),
+                      Text(
+                        'Ошибка загрузки пользователей',
+                        style: AppTextStyles.medium,
+                        textAlign: TextAlign.center,
+                      ),
+                      const SizedBox(height: 8),
+                      Text(
+                        error.toString(),
+                        style: AppTextStyles.small.copyWith(color: Colors.red),
+                        textAlign: TextAlign.center,
+                      ),
+                    ],
                   ),
                 ),
-                subtitle: Text(user.email),
-                leading: user.avatarUrl != null
-                    ? CircleAvatar(
-                        backgroundImage: NetworkImage(user.avatarUrl!),
-                      )
-                    : const CircleAvatar(
-                        child: Icon(Icomoon.person),
-                      ),
-                selected: _selectedUser?.id == user.id,
-                onTap: () {
-                  setState(() {
-                    _selectedUser = user;
-                  });
-                },
-              );
-            },
-          ),
-        ),
-        loading: () => const SizedBox(
-          width: 50,
-          height: 50,
-          child: Center(child: CircularProgressIndicator()),
-        ),
-        error: (error, _) => Center(
-          child: Text(
-            'Ошибка загрузки пользователей: $error',
-            style: const TextStyle(color: Colors.red),
-          ),
+              ),
+            ),
+
+            const SizedBox(height: 16),
+
+            // Action buttons
+            Row(
+              mainAxisAlignment: MainAxisAlignment.end,
+              children: [
+                TextButton(
+                  onPressed: isLoading.value
+                      ? null
+                      : () => Navigator.of(context).pop(),
+                  child: Text(
+                    'Отмена',
+                    style: AppTextStyles.small
+                        .copyWith(color: AppColors.attachButton),
+                  ),
+                ),
+                const SizedBox(width: 8),
+                ElevatedButton(
+                  onPressed: (selectedUser.value == null || isLoading.value)
+                      ? null
+                      : () => _createChat(
+                            context,
+                            ref,
+                            selectedUser.value!.id,
+                            isLoading,
+                          ),
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: AppColors.black,
+                    foregroundColor: Colors.white,
+                  ),
+                  child: isLoading.value
+                      ? const SizedBox(
+                          width: 20,
+                          height: 20,
+                          child: CircularProgressIndicator(
+                            strokeWidth: 2,
+                            color: Colors.white,
+                          ),
+                        )
+                      : const Text('Создать чат'),
+                ),
+              ],
+            ),
+          ],
         ),
       ),
-      actions: [
-        TextButton(
-          onPressed: () => Navigator.of(context).pop(),
-          child: const Text('Отмена'),
-        ),
-        ElevatedButton(
-          onPressed: _selectedUser == null
-              ? null
-              : () async {
-                  try {
-                    // Create a new chat with the selected user
-                    await SupabaseChatRepository()
-                        .createChat(_selectedUser!.id);
-
-                    
-                  } catch (e) {
-                    log('CreateChatDialog error: $e');
-                    // Show error if chat creation fails
-                    if (context.mounted) {
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        SnackBar(
-                          content: Text('Не удалось создать чат: $e'),
-                          backgroundColor: Colors.red,
-                        ),
-                      );
-                    }
-                  } finally {
-                    await Future.delayed(Durations.long1, () {
-                      if (context.mounted) {
-                        context.pop();
-                      }
-                    });
-                  }
-                },
-          child: const Text('Создать чат'),
-        ),
-      ],
     );
+  }
+
+  Widget _buildEmptyList(bool hasSearchQuery) => Center(
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Icon(
+              hasSearchQuery ? Icomoon.searchS : Icomoon.person,
+              size: 48,
+              color: AppColors.gray,
+            ),
+            const SizedBox(height: 16),
+            Text(
+              hasSearchQuery
+                  ? 'Пользователи не найдены'
+                  : 'Нет доступных пользователей',
+              style: AppTextStyles.medium.copyWith(
+                color: AppColors.gray,
+              ),
+              textAlign: TextAlign.center,
+            ),
+          ],
+        ),
+      );
+
+  Widget _buildUserListItem({
+    required UserModel user,
+    required bool isSelected,
+    required VoidCallback onTap,
+  }) =>
+      Card(
+        margin: const EdgeInsets.symmetric(vertical: 4),
+        color: isSelected ? AppColors.searchBackground : Colors.white,
+        elevation: 0,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(8),
+          side: BorderSide(
+            color: isSelected ? AppColors.gray : Colors.transparent,
+            width: 1.5,
+          ),
+        ),
+        child: ListTile(
+          contentPadding: const EdgeInsets.symmetric(
+            horizontal: 12,
+            vertical: 6,
+          ),
+          leading: CircleAvatar(
+            backgroundColor: AppColors.avatarBackground3,
+            backgroundImage:
+                user.avatarUrl != null ? NetworkImage(user.avatarUrl!) : null,
+            child: user.avatarUrl == null
+                ? Text(
+                    user.username.substring(0, 1).toUpperCase(),
+                    style: const TextStyle(color: Colors.white),
+                  )
+                : null,
+          ),
+          title: Text(
+            user.username,
+            style: AppTextStyles.medium.copyWith(color: AppColors.black),
+          ),
+          subtitle: Text(
+            user.email,
+            style: AppTextStyles.small.copyWith(
+              color: AppColors.gray,
+            ),
+          ),
+          trailing: isSelected
+              ? const Icon(Icons.check_circle, color: AppColors.backButton)
+              : null,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(8),
+          ),
+          onTap: onTap,
+        ),
+      );
+
+  Future<void> _createChat(
+    BuildContext context,
+    WidgetRef ref,
+    String userId,
+    ValueNotifier<bool> isLoading,
+  ) async {
+    isLoading.value = true;
+
+    try {
+      // Use the view model to create the chat
+      final chatId =
+          await ref.read(chatListViewModelProvider.notifier).createChat(userId);
+
+      if (context.mounted) {
+        // Close dialog
+        Navigator.of(context).pop();
+
+        // Navigate to the newly created chat
+        context.go('/chat/$chatId');
+      }
+    } catch (e) {
+      log('Error creating chat: $e');
+
+      if (context.mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Не удалось создать чат: ${e.toString()}'),
+            backgroundColor: Colors.red,
+          ),
+        );
+      }
+    } finally {
+      isLoading.value = false;
+    }
   }
 }
 
 // Extension method to show create chat dialog
 extension CreateChatDialogExtension on BuildContext {
-  Future<void> showCreateChatDialog() async => showDialog(
+  Future<void> showCreateChatDialog() => showDialog(
         context: this,
         builder: (context) => const CreateChatDialog(),
       );

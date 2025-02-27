@@ -2,6 +2,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_chat/app/theme/colors.dart';
 import 'package:flutter_chat/app/theme/icons.dart';
+import 'package:flutter_chat/app/theme/text_styles.dart';
 import 'package:flutter_chat/core/utils/validators/validators.dart';
 import 'package:flutter_chat/features/auth/presentation/view/components/auth_widgets.dart';
 import 'package:flutter_chat/features/auth/presentation/view/components/forgot_password_dialog.dart';
@@ -109,12 +110,9 @@ class LoginView extends ConsumerWidget {
         style: TextButton.styleFrom(
           padding: const EdgeInsets.symmetric(vertical: 12),
         ),
-        child: const Text(
+        child:  Text(
           'Забыли пароль?',
-          style: TextStyle(
-            color: AppColors.myMessageBubble,
-            fontWeight: FontWeight.w500,
-          ),
+          style: AppTextStyles.small,
         ),
       ),
     );
@@ -122,22 +120,16 @@ class LoginView extends ConsumerWidget {
   Widget _buildRegisterLink(BuildContext context, bool isLoading) => Row(
       mainAxisAlignment: MainAxisAlignment.center,
       children: [
-        const Text(
+         Text(
           'Нет аккаунта? ',
-          style: TextStyle(
-            fontSize: 14,
-            color: Colors.black87,
-          ),
+                   style: AppTextStyles.small,
+
         ),
         TextButton(
           onPressed: isLoading ? null : () => context.go('/register'),
-          child: const Text(
+          child:  Text(
             'Зарегистрироваться',
-            style: TextStyle(
-              fontSize: 14,
-              fontWeight: FontWeight.bold,
-              color: AppColors.myMessageBubble,
-            ),
+            style: AppTextStyles.small,
           ),
         ),
       ],

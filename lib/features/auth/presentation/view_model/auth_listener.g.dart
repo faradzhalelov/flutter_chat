@@ -6,7 +6,7 @@ part of 'auth_listener.dart';
 // RiverpodGenerator
 // **************************************************************************
 
-String _$authListenerHash() => r'0858bd10d8103c2a272df22e24cd0202eb5344ef';
+String _$authListenerHash() => r'68351f0ddef8e5db5dd9cc7214d5498f24ac2bea';
 
 /// See also [AuthListener].
 @ProviderFor(AuthListener)

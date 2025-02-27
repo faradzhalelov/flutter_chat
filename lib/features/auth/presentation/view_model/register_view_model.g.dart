@@ -6,7 +6,7 @@ part of 'register_view_model.dart';
 // RiverpodGenerator
 // **************************************************************************
 
-String _$registerViewModelHash() => r'7a0a2c391ab3ef600e477fb37eb8b14d0f6bc4fa';
+String _$registerViewModelHash() => r'd4fed2239a7134e6d358870c54fdef9c2aef79a9';
 
 /// ViewModel for the Register screen following MVVM architecture
 ///

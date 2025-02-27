@@ -2,6 +2,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_chat/app/theme/colors.dart';
 import 'package:flutter_chat/app/theme/icons.dart';
+import 'package:flutter_chat/app/theme/text_styles.dart';
 import 'package:flutter_chat/core/utils/typedef/typedef.dart';
 
 /// A reusable button for authentication screens
@@ -45,10 +46,7 @@ class AuthButton extends StatelessWidget {
             )
           : Text(
               text,
-              style: const TextStyle(
-                fontSize: 16,
-                fontWeight: FontWeight.bold,
-              ),
+              style: AppTextStyles.medium,
             ),
     );
 }
@@ -93,7 +91,7 @@ class AuthTextField extends StatelessWidget {
       focusNode: focusNode,
       textInputAction: textInputAction,
       onFieldSubmitted: onSubmitted,
-      style: const TextStyle(fontSize: 16),
+      style: AppTextStyles.medium,
       decoration: InputDecoration(
         labelText: labelText,
         hintText: hintText,
@@ -121,18 +119,14 @@ class AuthTextField extends StatelessWidget {
           borderRadius: BorderRadius.circular(12),
           borderSide: const BorderSide(color: Colors.red, width: 1.5),
         ),
-        labelStyle: const TextStyle(
-          color: Colors.grey,
-          fontSize: 16,
-        ),
-        hintStyle: TextStyle(
-          color: Colors.grey.shade400,
-          fontSize: 16,
-        ),
-        errorStyle: const TextStyle(
-          color: Colors.red,
-          fontSize: 12,
-        ),
+        labelStyle: AppTextStyles.medium.copyWith(color: Colors.grey),
+       
+        hintStyle: AppTextStyles.medium.copyWith(          color: Colors.grey.shade400,
+),
+      
+        errorStyle: AppTextStyles.extraSmall.copyWith(          color: Colors.red,
+),
+       
         contentPadding: const EdgeInsets.symmetric(
           horizontal: 16,
           vertical: 16,
@@ -180,11 +174,8 @@ class AuthHeader extends StatelessWidget {
         // Title
         Text(
           title,
-          style: const TextStyle(
-            fontSize: 24,
-            fontWeight: FontWeight.bold,
-            color: Colors.black,
-          ),
+          style: AppTextStyles.boldTitle.copyWith(color: Colors.black),
+        
           textAlign: TextAlign.center,
         ),
         
@@ -193,10 +184,9 @@ class AuthHeader extends StatelessWidget {
           const SizedBox(height: 8),
           Text(
             subtitle!,
-            style: const TextStyle(
-              fontSize: 16,
-              color: Colors.grey,
-            ),
+            style: AppTextStyles.medium.copyWith(              color: Colors.grey,
+)
+            ,
             textAlign: TextAlign.center,
           ),
         ],
@@ -226,10 +216,10 @@ class OrDivider extends StatelessWidget {
           padding: const EdgeInsets.symmetric(horizontal: 16),
           child: Text(
             text,
-            style: TextStyle(
-              fontSize: 14,
-              color: Colors.grey.shade600,
-            ),
+            style: AppTextStyles.smallSemiBold.copyWith(              color: Colors.grey.shade600,
+ ),
+            
+        
           ),
         ),
         Expanded(

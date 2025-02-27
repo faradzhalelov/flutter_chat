@@ -4,6 +4,7 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_chat/app/router/router.dart';
 import 'package:flutter_chat/app/theme/icons.dart';
+import 'package:flutter_chat/app/theme/text_styles.dart';
 import 'package:flutter_chat/app/theme/theme.dart';
 import 'package:flutter_chat/core/lifecycle/lifecycle.dart';
 import 'package:flutter_chat/features/auth/presentation/view/auth_wrapper.dart';
@@ -104,20 +105,16 @@ class _ErrorHandlerState extends State<ErrorHandler> {
                   size: 64,
                 ),
                 const SizedBox(height: 16),
-                const Text(
+                 Text(
                   'Произошла ошибка',
-                  style: TextStyle(
-                    fontSize: 22,
-                    fontWeight: FontWeight.bold,
-                  ),
+                  style: AppTextStyles.boldTitle,
+                  
                   textAlign: TextAlign.center,
                 ),
                 const SizedBox(height: 16),
                 Text(
                   error.toString(),
-                  style: const TextStyle(
-                    fontSize: 16,
-                  ),
+                  style: AppTextStyles.medium,
                   textAlign: TextAlign.center,
                 ),
                 const SizedBox(height: 24),

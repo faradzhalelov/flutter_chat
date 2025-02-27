@@ -3,6 +3,7 @@ import 'dart:developer';
 import 'package:flutter/material.dart';
 import 'package:flutter_chat/app/theme/colors.dart';
 import 'package:flutter_chat/app/theme/icons.dart';
+import 'package:flutter_chat/app/theme/text_styles.dart';
 import 'package:flutter_chat/core/supabase/service/supabase_service.dart';
 import 'package:flutter_chat/features/auth/presentation/view/login_view.dart';
 import 'package:go_router/go_router.dart';
@@ -75,23 +76,21 @@ class _SplashViewState extends State<SplashView> {
               const SizedBox(height: 24),
 
               // App name
-              const Text(
+               Text(
                 'Flutter Messenger',
-                style: TextStyle(
-                  fontSize: 32,
-                  fontWeight: FontWeight.bold,
-                  color: Colors.white,
-                ),
+                style: AppTextStyles.largeTitle.copyWith(                  color: Colors.white,
+),
+                
+               
               ),
               const SizedBox(height: 16),
 
               // Tagline
-              const Text(
+               Text(
                 'Общайтесь без границ',
-                style: TextStyle(
-                  fontSize: 16,
-                  color: Colors.white70,
-                ),
+                style: AppTextStyles.medium.copyWith(                  color: Colors.white70,
+),
+               
               ),
               const SizedBox(height: 48),
 

@@ -58,7 +58,7 @@ class AppTheme {
         useMaterial3: true,
 
         // Set the primary color
-        primaryColor: AppColors.myMessageBubble,
+        primaryColor: AppColors.black,
 
         // Define the background color
         scaffoldBackgroundColor: AppColors.appBackground,
@@ -133,9 +133,9 @@ class AppTheme {
               MaterialStateProperty.all(AppColors.searchBackground),
           textStyle: MaterialStateProperty.all(AppTextStyles.small),
           hintStyle: MaterialStateProperty.all(
-              AppTextStyles.small.copyWith(color: AppColors.secondaryText)),
+              AppTextStyles.small.copyWith(color: AppColors.secondaryText),),
           padding: MaterialStateProperty.all(
-              const EdgeInsets.symmetric(horizontal: 16)),
+              const EdgeInsets.symmetric(horizontal: 16),),
           shape: MaterialStateProperty.all(
             RoundedRectangleBorder(
               borderRadius: BorderRadius.circular(10),
@@ -156,7 +156,7 @@ class AppTheme {
 
         // Color scheme
         colorScheme: const ColorScheme.light(
-          primary: AppColors.myMessageBubble,
+          primary: AppColors.black,
           onPrimary: AppColors.primaryText,
           secondary: AppColors.backButton,
           error: Colors.redAccent,

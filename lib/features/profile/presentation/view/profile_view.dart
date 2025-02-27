@@ -3,6 +3,7 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter_chat/app/theme/colors.dart';
 import 'package:flutter_chat/app/theme/icons.dart';
+import 'package:flutter_chat/app/theme/text_styles.dart';
 import 'package:flutter_chat/core/auth/service/auth_service.dart';
 import 'package:flutter_chat/features/auth/presentation/view/components/auth_widgets.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -187,11 +188,7 @@ class _ProfileViewState extends ConsumerState<ProfileView> {
                             ? Text(
                                 _getInitials(
                                     userProfile['username'] as String? ?? ''),
-                                style: const TextStyle(
-                                  fontSize: 32,
-                                  fontWeight: FontWeight.bold,
-                                  color: Colors.white,
-                                ),
+                                style: AppTextStyles.largeTitle.copyWith(color: Colors.white),
                               )
                             : null,
                       ),
@@ -223,10 +220,8 @@ class _ProfileViewState extends ConsumerState<ProfileView> {
                 // Email display
                 Text(
                   userProfile['email'] as String? ?? 'No email',
-                  style: const TextStyle(
-                    fontSize: 16,
-                    color: Colors.grey,
-                  ),
+                  style: AppTextStyles.medium.copyWith(color: Colors.grey),
+                 
                 ),
                 const SizedBox(height: 32),
 
@@ -273,7 +268,7 @@ class _ProfileViewState extends ConsumerState<ProfileView> {
                 Text(
                   error.toString(),
                   textAlign: TextAlign.center,
-                  style: const TextStyle(color: Colors.red),
+                  style: AppTextStyles.small.copyWith(color: Colors.red),
                 ),
                 const SizedBox(height: 24),
                 ElevatedButton(

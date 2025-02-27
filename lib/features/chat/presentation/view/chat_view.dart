@@ -127,9 +127,9 @@ class _ChatViewState extends ConsumerState<ChatView> {
                     return Center(
                       child: Text(
                         'Пока нет сообщений',
-                        style: TextStyle(
-                          color: Colors.grey.shade500,
-                        ),
+                        style: AppTextStyles.small.copyWith(                          color: Colors.grey.shade500,
+),
+                        
                       ),
                     );
                   }

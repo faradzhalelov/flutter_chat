@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_chat/app/theme/icons.dart';
+import 'package:flutter_chat/app/theme/text_styles.dart';
 
 class ErrorApp extends StatelessWidget {
   const ErrorApp({required this.e, super.key});
@@ -21,20 +22,16 @@ class ErrorApp extends StatelessWidget {
                     size: 64,
                   ),
                   const SizedBox(height: 16),
-                  const Text(
+                   Text(
                     'Ошибка инициализации приложения',
-                    style: TextStyle(
-                      fontSize: 22,
-                      fontWeight: FontWeight.bold,
-                    ),
+                    style: AppTextStyles.boldTitle,
                     textAlign: TextAlign.center,
                   ),
                   const SizedBox(height: 16),
                   Text(
                     e.toString(),
-                    style: const TextStyle(
-                      fontSize: 16,
-                    ),
+                    style: AppTextStyles.medium,
+
                     textAlign: TextAlign.center,
                   ),
                   const SizedBox(height: 24),

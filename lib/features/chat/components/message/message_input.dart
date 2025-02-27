@@ -2,6 +2,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_chat/app/theme/colors.dart';
 import 'package:flutter_chat/app/theme/icons.dart';
+import 'package:flutter_chat/app/theme/text_styles.dart';
 import 'package:flutter_chat/features/chat/presentation/view_model/chat_view_model.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
@@ -249,10 +250,9 @@ class _MessageInputState extends ConsumerState<MessageInput> with SingleTickerPr
           const SizedBox(height: 8),
           Text(
             label,
-            style: TextStyle(
-              fontSize: 12,
-              color: Colors.grey.shade700,
-            ),
+            style: AppTextStyles.extraSmall.copyWith(              color: Colors.grey.shade700,
+),
+           
           ),
         ],
       ),

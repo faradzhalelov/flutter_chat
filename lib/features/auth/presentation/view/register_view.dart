@@ -2,6 +2,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_chat/app/theme/colors.dart';
 import 'package:flutter_chat/app/theme/icons.dart';
+import 'package:flutter_chat/app/theme/text_styles.dart';
 import 'package:flutter_chat/core/utils/validators/validators.dart';
 import 'package:flutter_chat/features/auth/presentation/view/components/auth_widgets.dart';
 import 'package:flutter_chat/features/auth/presentation/view_model/register_view_model.dart';
@@ -139,22 +140,17 @@ class RegisterView extends ConsumerWidget {
   Widget _buildLoginLink(BuildContext context, bool isLoading) => Row(
       mainAxisAlignment: MainAxisAlignment.center,
       children: [
-        const Text(
+         Text(
           'Уже есть аккаунт? ',
-          style: TextStyle(
-            fontSize: 14,
-            color: Colors.black87,
-          ),
+          style: AppTextStyles.small.copyWith(            color: Colors.black87,
+),
+         
         ),
         TextButton(
           onPressed: isLoading ? null : () => context.go('/login'),
-          child: const Text(
+          child:  Text(
             'Войти',
-            style: TextStyle(
-              fontSize: 14,
-              fontWeight: FontWeight.bold,
-              color: AppColors.myMessageBubble,
-            ),
+           style: AppTextStyles.small,
           ),
         ),
       ],

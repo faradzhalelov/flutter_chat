@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_chat/app/theme/colors.dart';
 import 'package:flutter_chat/app/theme/icons.dart';
+import 'package:flutter_chat/app/theme/text_styles.dart';
 import 'package:flutter_chat/core/utils/extentions/date_extensions.dart';
 import 'package:flutter_chat/core/utils/typedef/typedef.dart';
 import 'package:flutter_chat/features/chat/data/models/atachment_type.dart';
@@ -74,17 +75,16 @@ class ChatListItem extends StatelessWidget {
                           children: [
                             Text(
                               chat.user.username,
-                              style: TextStyle(
-                                fontSize: 16,
-                                fontWeight: hasUnread ? FontWeight.bold : FontWeight.normal,
-                              ),
+                              style: AppTextStyles.medium.copyWith(                                fontWeight: hasUnread ? FontWeight.bold : FontWeight.normal,
+),
+                            
                             ),
                             Text(
                               _formatTime(chat.lastMessageTime),
-                              style: TextStyle(
-                                fontSize: 14,
-                                color: Colors.grey.shade500,
-                              ),
+                              style: AppTextStyles.small.copyWith(                                color: Colors.grey.shade500,
+),
+                              
+                            
                             ),
                           ],
                         ),

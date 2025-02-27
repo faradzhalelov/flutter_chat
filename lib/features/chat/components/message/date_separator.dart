@@ -1,5 +1,6 @@
 // lib/presentation/chat/components/date_separator.dart
 import 'package:flutter/material.dart';
+import 'package:flutter_chat/app/theme/text_styles.dart';
 import 'package:flutter_chat/core/utils/extentions/date_extensions.dart';
 import 'package:intl/intl.dart';
 
@@ -26,10 +27,8 @@ class DateSeparator extends StatelessWidget {
             padding: const EdgeInsets.symmetric(horizontal: 16),
             child: Text(
               _formatDate(date),
-              style: TextStyle(
-                fontSize: 12,
-                color: Colors.grey.shade500,
-              ),
+              style: AppTextStyles.extraSmall.copyWith(color:Colors.grey.shade500),
+            
             ),
           ),
           Expanded(

@@ -3,6 +3,7 @@ import 'dart:developer';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_chat/app/theme/icons.dart';
+import 'package:flutter_chat/app/theme/text_styles.dart';
 import 'package:flutter_chat/core/auth/service/auth_service.dart';
 import 'package:flutter_chat/features/auth/presentation/view/login_view.dart';
 import 'package:flutter_chat/features/auth/presentation/view/register_view.dart';
@@ -148,10 +149,7 @@ class ErrorView extends StatelessWidget {
               const SizedBox(height: 16),
               Text(
                 'Страница не найдена: ${state.uri.path}',
-                style: const TextStyle(
-                  fontSize: 16,
-                  fontWeight: FontWeight.bold,
-                ),
+                style: AppTextStyles.medium,
                 textAlign: TextAlign.center,
               ),
               const SizedBox(height: 16),
