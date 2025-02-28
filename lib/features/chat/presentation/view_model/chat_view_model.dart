@@ -6,7 +6,6 @@ import 'package:file_picker/file_picker.dart';
 import 'package:flutter_chat/core/supabase/service/providers/file_upload_service_provider.dart';
 import 'package:flutter_chat/core/supabase/service/supabase_service.dart';
 import 'package:flutter_chat/features/chat/data/models/atachment_type.dart';
-import 'package:flutter_chat/features/chat/data/repositories/provider/chat_repository_provider.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:record/record.dart';
@@ -33,7 +32,6 @@ class ChatViewModel extends _$ChatViewModel {
     if (text.trim().isEmpty) return;
     state = const AsyncValue.loading();
     try {
-      await ref.read(chatRepositoryProvider).sendTextMessage(chatId, text);
       state = const AsyncValue.data(null);
     } catch (e, st) {
       state = AsyncValue.error(e, st);
@@ -54,8 +52,8 @@ class ChatViewModel extends _$ChatViewModel {
           .uploadFile(pickedFile, MessageType.image, chatId, userId);
       //save message in db
       //save message in supabase
-      await ref.read(chatRepositoryProvider).sendFileMessage(
-          chatId, MessageType.image, attachementUrl, pickedFile.name);
+      // await ref.read(chatRepositoryProvider).sendFileMessage(
+      //     chatId, MessageType.image, attachementUrl, pickedFile.name);
       state = const AsyncValue.data(null);
     } catch (e, st) {
       log('sendImageMessage:$e $st');
@@ -82,12 +80,12 @@ class ChatViewModel extends _$ChatViewModel {
   
       //save message in db
       //save message in supabase
-      await ref.read(chatRepositoryProvider).sendFileMessage(
-            chatId,
-            MessageType.video,
-            attachementUrl,
-            pickedFile.name,
-          );
+      // await ref.read(chatRepositoryProvider).sendFileMessage(
+      //       chatId,
+      //       MessageType.video,
+      //       attachementUrl,
+      //       pickedFile.name,
+      //     );
       state = const AsyncValue.data(null);
     } catch (e, st) {
       state = AsyncValue.error(e, st);
@@ -111,12 +109,12 @@ class ChatViewModel extends _$ChatViewModel {
 
       //save message in db
       //save message in supabase
-      await ref.read(chatRepositoryProvider).sendFileMessage(
-            chatId,
-            MessageType.file,
-            attachementUrl,
-            pickedFile.name,
-          );
+      // await ref.read(chatRepositoryProvider).sendFileMessage(
+      //       chatId,
+      //       MessageType.file,
+      //       attachementUrl,
+      //       pickedFile.name,
+      //     );
       state = const AsyncValue.data(null);
     } catch (e, st) {
       state = AsyncValue.error(e, st);
@@ -164,12 +162,12 @@ class ChatViewModel extends _$ChatViewModel {
      
       //save message in db
       //save message in supabase
-      await ref.read(chatRepositoryProvider).sendFileMessage(
-            chatId,
-            MessageType.audio,
-            attachementUrl,
-            pickedFile.name,
-          );
+      // await ref.read(chatRepositoryProvider).sendFileMessage(
+      //       chatId,
+      //       MessageType.audio,
+      //       attachementUrl,
+      //       pickedFile.name,
+      //     );
 
       _recordingPath = null;
       state = const AsyncValue.data(null);
@@ -201,7 +199,7 @@ class ChatViewModel extends _$ChatViewModel {
   /// Mark messages as read
   Future<void> markMessagesAsRead() async {
     try {
-      await ref.read(chatRepositoryProvider).markMessagesAsRead(chatId);
+      //await ref.read(chatRepositoryProvider).markMessagesAsRead(chatId);
     } catch (e) {
       // Handle error silently
     }

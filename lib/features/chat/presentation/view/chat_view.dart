@@ -6,7 +6,6 @@ import 'package:flutter_chat/features/chat/components/message/date_separator.dar
 import 'package:flutter_chat/features/chat/components/message/message_bubble.dart';
 import 'package:flutter_chat/features/chat/components/message/message_input.dart';
 import 'package:flutter_chat/features/chat/data/models/message.dart';
-import 'package:flutter_chat/features/chat/data/repositories/provider/messages_pod.dart';
 import 'package:flutter_chat/features/chat/presentation/view_model/chat_view_model.dart';
 // import 'package:flutter_chat/features/chat/presentation/view_model/chat_view_model.dart';
 import 'package:flutter_chat/features/common/widgets/user_avatar.dart';
@@ -58,7 +57,8 @@ class _ChatViewState extends ConsumerState<ChatView> {
 
   @override
   Widget build(BuildContext context) {
-    final messagesStream = ref.watch(messagesPodProvider(chatId));
+    //TODO:
+    final messagesStream = AsyncValue.data(<MessageModel>[]);
 
     return Scaffold(
       backgroundColor: AppColors.appBackground,
