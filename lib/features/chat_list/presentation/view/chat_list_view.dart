@@ -1,12 +1,13 @@
 // features/chat_list/presentation/views/chat_list_view.dart
 
 import 'package:flutter/material.dart';
+import 'package:flutter_chat/app/database/dto/chat_dto.dart';
+import 'package:flutter_chat/app/database/dto/user_dto.dart';
 import 'package:flutter_chat/app/theme/colors.dart';
 import 'package:flutter_chat/app/theme/icons.dart';
 import 'package:flutter_chat/app/theme/text_styles.dart';
 import 'package:flutter_chat/features/auth/domain/service/auth_service.dart';
 import 'package:flutter_chat/features/chat_list/components/create_chat_dialog.dart';
-import 'package:flutter_chat/features/chat_list/data/models/chat.dart';
 import 'package:flutter_chat/features/chat_list/presentation/components/chat_list_item.dart';
 import 'package:flutter_chat/features/chat_list/presentation/view_model/chat_list_view_model.dart';
 import 'package:flutter_chat/features/profile/presentation/view/profile_view.dart';
@@ -30,13 +31,15 @@ class _ChatListViewState extends ConsumerState<ChatListView> {
     super.dispose();
   }
 
-  AsyncValue<List<ChatModel>> filteredChatListState(
-      String searchQuery, AsyncValue<List<ChatModel>> chatListState) {
+  AsyncValue<List<(ChatDto,UserDto)>> filteredChatListState(
+      String searchQuery, AsyncValue<List<(ChatDto,UserDto)>> chatListState) {
     final query = searchQuery.toLowerCase();
-
+    
     // Filter by both username and last message content
-    final filteredList = chatListState.value!.where((chat) {
-      final usernameMatch = chat.user.username.toLowerCase().contains(query);
+    final filteredList = chatListState.value!.where((c) {
+      final chat = c.$1;
+      final user = c.$2;
+      final usernameMatch = user.username.toLowerCase().contains(query);
       final lastMessageMatch =
           chat.lastMessageText?.toLowerCase().contains(query) ?? false;
 
@@ -160,18 +163,20 @@ class _ChatListViewState extends ConsumerState<ChatListView> {
       );
 
   Widget _buildChatList(
-    AsyncValue<List<ChatModel>> chatListState,
+    AsyncValue<List<(ChatDto, UserDto)>> chatListState,
     ChatListViewModel viewModel,
   ) =>
       Expanded(
         child: chatListState.when(
-          data: (chats) {
-            if (chats.isEmpty) {
+          data: (chatUserList) {
+            if (chatUserList.isEmpty) {
               return _buildEmptyState();
             }
-            chats.sort((a, b) {
-              final aTime = a.lastMessageAt;
-              final bTime = a.lastMessageAt;
+            chatUserList.sort((a, b) {
+              final chatA = a.$1;
+              final chatB = b.$1;
+              final aTime = chatA.lastMessageAt;
+              final bTime = chatB.lastMessageAt;
               if (aTime != null && bTime != null) {
                 return aTime.compareTo(bTime);
               } else if (aTime != null && bTime == null) {
@@ -179,10 +184,10 @@ class _ChatListViewState extends ConsumerState<ChatListView> {
               } else if (aTime == null && bTime != null) {
                 return -1;
               } else {
-                return b.createdAt.compareTo(a.createdAt);
+                return chatB.createdAt.compareTo(chatA.createdAt);
               }
             });
-            return _buildChatListItems( chats, viewModel);
+            return _buildChatListItems( chatUserList, viewModel);
           },
           loading: () => const Center(
             child: CircularProgressIndicator(),
@@ -220,7 +225,7 @@ class _ChatListViewState extends ConsumerState<ChatListView> {
       );
 
   Widget _buildChatListItems(
-    List<ChatModel> chats,
+    List<(ChatDto, UserDto)> chats,
     ChatListViewModel viewModel,
   ) =>
       RefreshIndicator(
@@ -230,8 +235,8 @@ class _ChatListViewState extends ConsumerState<ChatListView> {
           itemBuilder: (context, index) {
             final chat = chats[index];
             return ChatListItem(
-              chat: chat,
-              onTap: () => context.push('/chat/${chat.id}', extra:  {'otherUser' : chat.user.toJson()}),
+              chatUser: chat,
+              onTap: () => context.push('/chat/${chat.$1.id}', extra:  {'otherUser' : chat.$2}),
               onDismissed: (_) =>
                   _handleChatDismissed(chat, viewModel),
             );
@@ -282,14 +287,14 @@ class _ChatListViewState extends ConsumerState<ChatListView> {
       );
 
   void _handleChatDismissed(
-    ChatModel chat,
+    (ChatDto, UserDto) chat,
     ChatListViewModel viewModel,
   ) {
-    viewModel.deleteChat(chat.id);
+    viewModel.deleteChat(chat.$1.id);
 
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
-        content: Text('Чат с ${chat.user.username} удален'),
+        content: Text('Чат с ${chat.$2.username} удален'),
         duration: const Duration(seconds: 2),
       ),
     );

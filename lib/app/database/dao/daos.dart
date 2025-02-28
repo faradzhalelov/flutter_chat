@@ -1,5 +1,8 @@
 import 'package:drift/drift.dart';
 import 'package:flutter_chat/app/database/db/database.dart';
+import 'package:flutter_chat/app/database/dto/chat_dto.dart';
+import 'package:flutter_chat/app/database/dto/message_dto.dart';
+import 'package:flutter_chat/app/database/dto/user_dto.dart';
 
 part 'daos.g.dart';
 
@@ -9,11 +12,11 @@ class UsersDao extends DatabaseAccessor<LocalDatabase> with _$UsersDaoMixin {
 UsersDao(super.db);
 
 
-  Future<List<User>> getAllUsers() => select(users).get();
+  Future<List<UserDto>> getAllUsers() => select(users).get();
   
-  Stream<List<User>> watchAllUsers() => select(users).watch();
+  Stream<List<UserDto>> watchAllUsers() => select(users).watch();
   
-  Future<User?> getUserById(String id) => 
+  Future<UserDto?> getUserById(String id) => 
       (select(users)..where((u) => u.id.equals(id)))
       .getSingleOrNull();
   
@@ -32,18 +35,51 @@ UsersDao(super.db);
 class ChatsDao extends DatabaseAccessor<LocalDatabase> with _$ChatsDaoMixin {
   ChatsDao(super.db);
 
-  Stream<List<Chat>> watchChatsForUser(String userId) {
-    final query = select(chats)
-      .join([
-        innerJoin(chatMembers, chatMembers.chatId.equalsExp(chats.id)),
-      ])
-      ..where(chatMembers.userId.equals(userId))
-      ..orderBy([OrderingTerm.desc(chats.lastMessageAt)]);
-    
-    return query.map((row) => row.readTable(chats)).watch();
-  }
+ Stream<List<(ChatDto, UserDto)>> watchChatsForUser(String userId) => (select(chatMembers)
+      ..where((cm) => cm.userId.equals(userId)))
+        .watch()
+        .asyncMap((chatMemberData) async {
+          // Extract all chat IDs for this user
+          final chatIds = chatMemberData
+              .map((member) => member.chatId)
+              .toList();
+
+          if (chatIds.isEmpty) return <(ChatDto, UserDto)>[];
+
+          // Get all chats with their latest data
+          final chatsQuery = select(chats)
+            ..where((c) => c.id.isIn(chatIds))
+            ..orderBy([(c) => OrderingTerm(expression: c.lastMessageAt, mode: OrderingMode.desc)]);
+          
+          final chatsData = await chatsQuery.get();
+
+          // Process chats in parallel for better performance
+          final futures = chatsData.map((chat) async {
+            // Get other members
+            final otherMembersQuery = select(chatMembers)
+              ..where((cm) => cm.chatId.equals(chat.id) & cm.userId.equals(userId).not());
+            
+            final otherMembersResponse = await otherMembersQuery.get();
+
+            if (otherMembersResponse.isEmpty) return null;
+
+            // Get other user data
+            final otherUserId = otherMembersResponse[0].userId;
+            final otherUserQuery = select(users)
+              ..where((u) => u.id.equals(otherUserId));
+            
+            final otherUser = await otherUserQuery.getSingleOrNull();
+            if (otherUser == null) return null;
+            
+            return (chat, otherUser);
+          });
+
+          // Wait for all futures and filter out nulls
+          final results = await Future.wait(futures);
+          return results.whereType<(ChatDto, UserDto)>().toList();
+        });
   
-  Future<Chat?> getChatById(String id) => 
+  Future<ChatDto?> getChatById(String id) => 
       (select(chats)..where((c) => c.id.equals(id)))
       .getSingleOrNull();
   
@@ -56,7 +92,7 @@ class ChatsDao extends DatabaseAccessor<LocalDatabase> with _$ChatsDaoMixin {
   Future<int> deleteChat(String id) => 
       (delete(chats)..where((c) => c.id.equals(id))).go();
   
-  // Chat members methods
+  // ChatDto members methods
   Future<int> addChatMember(ChatMembersCompanion chatMember) => 
       into(chatMembers).insert(chatMember, mode: InsertMode.insertOrReplace);
   
@@ -65,7 +101,7 @@ class ChatsDao extends DatabaseAccessor<LocalDatabase> with _$ChatsDaoMixin {
         ..where((cm) => cm.chatId.equals(chatId) & cm.userId.equals(userId)))
       .go();
   
-  Stream<List<User>> watchChatMembers(String chatId) {
+  Stream<List<UserDto>> watchChatMembers(String chatId) {
     final query = select(users)
       .join([
         innerJoin(chatMembers, chatMembers.userId.equalsExp(users.id)),
@@ -81,33 +117,37 @@ class ChatsDao extends DatabaseAccessor<LocalDatabase> with _$ChatsDaoMixin {
 class MessagesDao extends DatabaseAccessor<LocalDatabase> with _$MessagesDaoMixin {
   MessagesDao(super.db);
 
-  Stream<List<Message>> watchMessagesForChat(String chatId) => 
+  Stream<List<MessageDto>> watchMessagesForChat(String chatId) => 
       (select(messages)
         ..where((m) => m.chatId.equals(chatId))
         ..orderBy([(m) => OrderingTerm.asc(m.createdAt)]))
       .watch();
   
-  Future<List<Message>> getUnsentMessages() => 
+  Future<List<MessageDto>> getUnsentMessages() async => 
       (select(messages)..where((m) => m.isSynced.equals(false)))
       .get();
+
+  Future<List<MessageDto>> getMessagesByChatId(String chatId) async =>  (select(messages)
+            ..where((m) => m.chatId.equals(chatId)))
+          .get();
   
-  Future<int> insertMessage(MessagesCompanion message) => 
+  Future<int> insertMessage(MessagesCompanion message)async => 
       into(messages).insert(message, mode: InsertMode.insertOrReplace);
   
-  Future<bool> updateMessage(MessagesCompanion message) => 
+  Future<bool> updateMessage(MessagesCompanion message)async => 
       update(messages).replace(message);
   
-  Future<int> markMessageAsRead(String messageId) => 
+  Future<int> markMessageAsRead(String messageId)async => 
       (update(messages)..where((m) => m.id.equals(messageId)))
       .write(const MessagesCompanion(isRead: Value(true)));
   
-  Future<int> markAllMessagesAsRead(String chatId, String currentUserId) => 
+  Future<int> markAllMessagesAsRead(String chatId, String currentUserId)async => 
     (update(messages)
       ..where((m) => m.chatId.equals(chatId) & 
                      m.userId.equals(currentUserId).not() & 
                      m.isRead.equals(false)))
     .write(const MessagesCompanion(isRead: Value(true)));
     
-  Future<int> deleteMessage(String id) => 
+  Future<int> deleteMessage(String id)async => 
       (delete(messages)..where((m) => m.id.equals(id))).go();
 }

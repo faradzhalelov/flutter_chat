@@ -2,12 +2,13 @@
 import 'dart:io';
 
 import 'package:flutter/material.dart';
+import 'package:flutter_chat/app/database/db/message_type.dart';
+import 'package:flutter_chat/app/database/dto/message_dto.dart';
 import 'package:flutter_chat/app/theme/colors.dart';
 import 'package:flutter_chat/app/theme/icons.dart';
 import 'package:flutter_chat/app/theme/text_styles.dart';
 import 'package:flutter_chat/app/theme/theme.dart';
-import 'package:flutter_chat/features/chat/data/models/atachment_type.dart';
-import 'package:flutter_chat/features/chat/data/models/message.dart';
+import 'package:flutter_chat/core/supabase/service/supabase_service.dart';
 
 //todo: message bubbles with custom paint, audio bubble, file bubble
 class MessageBubble extends StatelessWidget {
@@ -16,7 +17,7 @@ class MessageBubble extends StatelessWidget {
     super.key,
     this.showTail = true,
   });
-  final MessageModel message;
+  final MessageDto message;
   final bool showTail;
 
   Widget _buildTextWithWidth(
@@ -54,7 +55,8 @@ class MessageBubble extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final bubbleTheme = AppTheme.messageBubbleTheme;
-    final isMe = message.isMe;
+    final userId = supabase.auth.currentUser?.id;
+    final isMe = message.userId == userId;
 
     return Align(
       alignment: isMe ? Alignment.centerRight : Alignment.centerLeft,
@@ -80,9 +82,9 @@ class MessageBubble extends StatelessWidget {
           //mainAxisSize: MainAxisSize.min,
           children: [
             // Text message
-            if (message.text != null && message.text!.isNotEmpty)
+            if (message.content != null && message.content!.isNotEmpty)
               _buildTextWithWidth(
-                message.text ?? ', ',
+                message.content ?? ', ',
                 AppTextStyles.small.copyWith(
                   color: isMe
                       ? bubbleTheme.myMessageTextColor

@@ -3,9 +3,10 @@ import 'dart:developer';
 import 'dart:io';
 
 import 'package:file_picker/file_picker.dart';
+import 'package:flutter_chat/core/supabase/repository/provider/supabase_repository_provider.dart';
 import 'package:flutter_chat/core/supabase/service/providers/file_upload_service_provider.dart';
 import 'package:flutter_chat/core/supabase/service/supabase_service.dart';
-import 'package:flutter_chat/features/chat/data/models/atachment_type.dart';
+import 'package:flutter_chat/app/database/db/message_type.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:record/record.dart';
@@ -32,6 +33,10 @@ class ChatViewModel extends _$ChatViewModel {
     if (text.trim().isEmpty) return;
     state = const AsyncValue.loading();
     try {
+      //save in db
+      //
+      //save in supabase
+      await ref.read(supabaseRepositoryProvider).sendMessage(chatId, text, null, null, MessageType.text);
       state = const AsyncValue.data(null);
     } catch (e, st) {
       state = AsyncValue.error(e, st);
@@ -47,13 +52,14 @@ class ChatViewModel extends _$ChatViewModel {
     try {
       final userId = supabase.auth.currentUser!.id;
       //upload to bucket
-      final String? attachementUrl = await ref
+      final String? attachmentUrl = await ref
           .read(fileUploadServiceProvider)
           .uploadFile(pickedFile, MessageType.image, chatId, userId);
       //save message in db
+      //todo:
       //save message in supabase
-      // await ref.read(chatRepositoryProvider).sendFileMessage(
-      //     chatId, MessageType.image, attachementUrl, pickedFile.name);
+      await ref.read(supabaseRepositoryProvider).sendMessage(
+          chatId, null, attachmentUrl, pickedFile.name, MessageType.image);
       state = const AsyncValue.data(null);
     } catch (e, st) {
       log('sendImageMessage:$e $st');
@@ -74,18 +80,16 @@ class ChatViewModel extends _$ChatViewModel {
     try {
       final userId = supabase.auth.currentUser!.id;
       //upload to bucket
-      final String? attachementUrl = await ref
+      final String? attachmentUrl = await ref
           .read(fileUploadServiceProvider)
           .uploadFile(pickedFile, MessageType.video, chatId, userId);
-  
+
       //save message in db
+      //todo:
       //save message in supabase
-      // await ref.read(chatRepositoryProvider).sendFileMessage(
-      //       chatId,
-      //       MessageType.video,
-      //       attachementUrl,
-      //       pickedFile.name,
-      //     );
+      await ref.read(supabaseRepositoryProvider).sendMessage(
+          chatId, null, attachmentUrl, pickedFile.name, MessageType.video);
+
       state = const AsyncValue.data(null);
     } catch (e, st) {
       state = AsyncValue.error(e, st);
@@ -103,18 +107,16 @@ class ChatViewModel extends _$ChatViewModel {
     try {
       final userId = supabase.auth.currentUser!.id;
       //upload to bucket
-      final String? attachementUrl = await ref
+      final String? attachmentUrl = await ref
           .read(fileUploadServiceProvider)
           .uploadFile(pickedFile, MessageType.file, chatId, userId);
 
       //save message in db
+      //todo:
       //save message in supabase
-      // await ref.read(chatRepositoryProvider).sendFileMessage(
-      //       chatId,
-      //       MessageType.file,
-      //       attachementUrl,
-      //       pickedFile.name,
-      //     );
+      await ref.read(supabaseRepositoryProvider).sendMessage(
+          chatId, null, attachmentUrl, pickedFile.name, MessageType.file);
+
       state = const AsyncValue.data(null);
     } catch (e, st) {
       state = AsyncValue.error(e, st);
@@ -153,22 +155,18 @@ class ChatViewModel extends _$ChatViewModel {
     try {
       await _audioRecorder.stop();
       final pickedFile = XFile(_recordingPath!);
-      
+
       final userId = supabase.auth.currentUser!.id;
       //upload to bucket
-      final String? attachementUrl = await ref
+      final String? attachmentUrl = await ref
           .read(fileUploadServiceProvider)
           .uploadFile(pickedFile, MessageType.audio, chatId, userId);
-     
-      //save message in db
-      //save message in supabase
-      // await ref.read(chatRepositoryProvider).sendFileMessage(
-      //       chatId,
-      //       MessageType.audio,
-      //       attachementUrl,
-      //       pickedFile.name,
-      //     );
 
+      //save message in db
+      //todo:
+      //save message in supabase
+      await ref.read(supabaseRepositoryProvider).sendMessage(
+          chatId, null, attachmentUrl, pickedFile.name, MessageType.audio);
       _recordingPath = null;
       state = const AsyncValue.data(null);
     } catch (e, st) {
@@ -199,10 +197,14 @@ class ChatViewModel extends _$ChatViewModel {
   /// Mark messages as read
   Future<void> markMessagesAsRead() async {
     try {
-      //await ref.read(chatRepositoryProvider).markMessagesAsRead(chatId);
+      //db
+      //todo:
+      //supabase
+      await ref.read(supabaseRepositoryProvider).markMessagesAsRead(chatId);
     } catch (e) {
       // Handle error silently
+      log('markMessagesAsRead error:$e');
+      rethrow;
     }
   }
 }
-

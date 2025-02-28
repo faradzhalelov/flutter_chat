@@ -6,12 +6,12 @@ part of 'chat_list_view_model.dart';
 // RiverpodGenerator
 // **************************************************************************
 
-String _$chatListViewModelHash() => r'd01963049cc6c4b8def04d1d87bc08e1cacfdcd9';
+String _$chatListViewModelHash() => r'a9bddb84a905ea734a6d70198f3f0b48e76a6f11';
 
 /// See also [ChatListViewModel].
 @ProviderFor(ChatListViewModel)
-final chatListViewModelProvider = AutoDisposeNotifierProvider<ChatListViewModel,
-    AsyncValue<List<ChatModel>>>.internal(
+final chatListViewModelProvider = AutoDisposeStreamNotifierProvider<
+    ChatListViewModel, List<(ChatDto, UserDto)>>.internal(
   ChatListViewModel.new,
   name: r'chatListViewModelProvider',
   debugGetCreateSourceHash: const bool.fromEnvironment('dart.vm.product')
@@ -21,6 +21,7 @@ final chatListViewModelProvider = AutoDisposeNotifierProvider<ChatListViewModel,
   allTransitiveDependencies: null,
 );
 
-typedef _$ChatListViewModel = AutoDisposeNotifier<AsyncValue<List<ChatModel>>>;
+typedef _$ChatListViewModel
+    = AutoDisposeStreamNotifier<List<(ChatDto, UserDto)>>;
 // ignore_for_file: type=lint
 // ignore_for_file: subtype_of_sealed_class, invalid_use_of_internal_member, invalid_use_of_visible_for_testing_member, deprecated_member_use_from_same_package

@@ -1,22 +1,23 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_chat/app/database/dto/message_dto.dart';
+import 'package:flutter_chat/app/database/dto/user_dto.dart';
 import 'package:flutter_chat/app/theme/colors.dart';
 import 'package:flutter_chat/app/theme/icons.dart';
 import 'package:flutter_chat/app/theme/text_styles.dart';
+import 'package:flutter_chat/core/supabase/service/supabase_service.dart';
 import 'package:flutter_chat/features/chat/components/message/date_separator.dart';
 import 'package:flutter_chat/features/chat/components/message/message_bubble.dart';
 import 'package:flutter_chat/features/chat/components/message/message_input.dart';
-import 'package:flutter_chat/features/chat/data/models/message.dart';
 import 'package:flutter_chat/features/chat/presentation/view_model/chat_view_model.dart';
 // import 'package:flutter_chat/features/chat/presentation/view_model/chat_view_model.dart';
 import 'package:flutter_chat/features/common/widgets/user_avatar.dart';
-import 'package:flutter_chat/features/profile/data/models/user.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 class ChatView extends ConsumerStatefulWidget {
   const ChatView({required this.chatId, this.otherUser,super.key});
   final String chatId;
-  final UserModel? otherUser;
+  final UserDto? otherUser;
   static const String routePath = 'chat';
 
   @override
@@ -27,7 +28,7 @@ class _ChatViewState extends ConsumerState<ChatView> {
   final ScrollController _scrollController = ScrollController();
   late final ChatViewModel viewModel;
   String get chatId => widget.chatId;
-  UserModel? get otherUser => widget.otherUser;
+  UserDto? get otherUser => widget.otherUser;
 
   @override
   void initState() {
@@ -58,8 +59,8 @@ class _ChatViewState extends ConsumerState<ChatView> {
   @override
   Widget build(BuildContext context) {
     //TODO:
-    final messagesStream = AsyncValue.data(<MessageModel>[]);
-
+    final messagesStream = AsyncValue.data(<MessageDto>[]);
+    final userId = supabase.auth.currentUser?.id;
     return Scaffold(
       backgroundColor: AppColors.appBackground,
       appBar: AppBar(
@@ -124,7 +125,7 @@ class _ChatViewState extends ConsumerState<ChatView> {
                   }
 
                   // Group messages by date
-                  final groupedMessages = <DateTime, List<MessageModel>>{};
+                  final groupedMessages = <DateTime, List<MessageDto>>{};
 
                   for (final message in messages) {
                     final date = DateTime(
@@ -177,8 +178,8 @@ class _ChatViewState extends ConsumerState<ChatView> {
                             flatList[index + 1] is! DateTime) {
                           final nextMessage = flatList[index + 1];
                           // If next message is from same sender and within 2 minutes, don't show tail
-                          if ((nextMessage as MessageModel).isMe ==
-                                  (message as MessageModel).isMe &&
+                          if ((nextMessage as MessageDto).userId == userId &&
+                                  (message as MessageDto).userId == userId &&
                               nextMessage.createdAt
                                       .difference(message.createdAt)
                                       .inMinutes <
@@ -188,7 +189,7 @@ class _ChatViewState extends ConsumerState<ChatView> {
                         }
 
                         return MessageBubble(
-                          message: message as MessageModel,
+                          message: message as MessageDto,
                           showTail: showTail,
                         );
                       }

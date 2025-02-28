@@ -2,18 +2,18 @@
 import 'dart:developer';
 
 import 'package:flutter/material.dart';
+import 'package:flutter_chat/app/database/dto/user_dto.dart';
 import 'package:flutter_chat/app/theme/colors.dart';
 import 'package:flutter_chat/app/theme/icons.dart';
 import 'package:flutter_chat/app/theme/text_styles.dart';
 import 'package:flutter_chat/core/supabase/service/supabase_service.dart';
 import 'package:flutter_chat/features/auth/domain/service/auth_service.dart';
 import 'package:flutter_chat/features/chat_list/presentation/view_model/chat_list_view_model.dart';
-import 'package:flutter_chat/features/profile/data/models/user.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 // Provider to fetch users that don't have active chats with the current user
 final availableUsersProvider =
-    AutoDisposeFutureProvider<List<UserModel>>((ref) async {
+    AutoDisposeFutureProvider<List<UserDto>>((ref) async {
   final currentUser = ref.watch(currentUserProvider);
   if (currentUser == null) return [];
 
@@ -27,13 +27,13 @@ final availableUsersProvider =
         .neq('id', currentUser.id);
 
     final allUsers =
-        response.map((userData) => UserModel.fromSupabase(userData)).toList();
+        response.map((userData) => UserDto.fromSupabase(userData)).toList();
 
     // Get list of users who already have chats with the current user
     final existingChats =
         ref.watch(chatListViewModelProvider).asData?.value ?? [];
     final existingChatUserIds =
-        existingChats.map((chat) => chat.user.id).toSet();
+        existingChats.map((chat) => chat.$2.id).toSet();
 
     // Filter out users who already have chats
     return allUsers
@@ -47,7 +47,7 @@ final availableUsersProvider =
 
 // Provider for filtering users by search query
 final filteredUsersProvider =
-    Provider.family<List<UserModel>, String>((ref, query) {
+    Provider.family<List<UserDto>, String>((ref, query) {
   final usersAsync = ref.watch(availableUsersProvider);
 
   return usersAsync.when(
@@ -78,8 +78,8 @@ class CreateChatDialog extends ConsumerStatefulWidget {
 class _CreateChatDialogState extends ConsumerState<CreateChatDialog> {
   final StateProvider<String> searchProvider =
       StateProvider<String>((ref) => '');
-  final StateProvider<UserModel?> selectedUserProvider =
-      StateProvider<UserModel?>((ref) => null);
+  final StateProvider<UserDto?> selectedUserProvider =
+      StateProvider<UserDto?>((ref) => null);
   final AutoDisposeStateProvider<bool> loadingProvider =
       AutoDisposeStateProvider<bool>((ref) => false);
 
@@ -260,7 +260,7 @@ class _CreateChatDialogState extends ConsumerState<CreateChatDialog> {
       );
 
   Widget _buildUserListItem({
-    required UserModel user,
+    required UserDto user,
     required bool isSelected,
     required VoidCallback onTap,
   }) =>

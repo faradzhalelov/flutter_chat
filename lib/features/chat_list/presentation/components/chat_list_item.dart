@@ -1,31 +1,34 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_chat/app/database/db/message_type.dart';
+import 'package:flutter_chat/app/database/dto/chat_dto.dart';
+import 'package:flutter_chat/app/database/dto/user_dto.dart';
 import 'package:flutter_chat/app/theme/colors.dart';
 import 'package:flutter_chat/app/theme/icons.dart';
 import 'package:flutter_chat/app/theme/text_styles.dart';
 import 'package:flutter_chat/core/supabase/service/supabase_service.dart';
 import 'package:flutter_chat/core/utils/extentions/date_extensions.dart';
 import 'package:flutter_chat/core/utils/typedef/typedef.dart';
-import 'package:flutter_chat/features/chat/data/models/atachment_type.dart';
-import 'package:flutter_chat/features/chat_list/data/models/chat.dart';
 import 'package:flutter_chat/features/common/widgets/user_avatar.dart';
 import 'package:intl/intl.dart';
 
 class ChatListItem extends StatelessWidget {
   const ChatListItem({
-    required this.chat,
+    required this.chatUser,
     required this.onTap,
     required this.onDismissed,
     super.key,
   });
-  final ChatModel chat;
+  final (ChatDto, UserDto) chatUser;
   final VoidCallback onTap;
   final VoidDismissDirection onDismissed;
 
   @override
   Widget build(BuildContext context) {
+    final chat = chatUser.$1;
+    final user = chatUser.$2;
     // Determine avatar color index based on the first letter of the name
-    final colorIndex = chat.user.username.isNotEmpty
-        ? chat.user.username.codeUnitAt(0) % 3
+    final colorIndex = user.username.isNotEmpty
+        ? user.username.codeUnitAt(0) % 3
         : 0;
     final userId = supabase.auth.currentUser?.id;
     return Dismissible(
@@ -55,8 +58,8 @@ class ChatListItem extends StatelessWidget {
                 children: [
                   // Avatar
                   UserAvatar(
-                    userName: chat.user.username,
-                    avatarUrl: chat.user.avatarUrl,
+                    userName: user.username,
+                    avatarUrl: user.avatarUrl,
                     colorIndex: colorIndex,
                     size: 50,
                   ),
@@ -72,7 +75,7 @@ class ChatListItem extends StatelessWidget {
                           mainAxisAlignment: MainAxisAlignment.spaceBetween,
                           children: [
                             Text(
-                              chat.user.username,
+                              user.username,
                               style: AppTextStyles.medium.copyWith(
                                 color: Colors.black,
                               ),
@@ -90,7 +93,8 @@ class ChatListItem extends StatelessWidget {
                         // Message preview
                         Row(
                           children: [
-                            if (chat.lastMessageUserId != null && chat.lastMessageUserId == userId)
+                            if (chat.lastMessageUserId != null &&
+                                chat.lastMessageUserId == userId)
                               Padding(
                                 padding: const EdgeInsets.only(right: 4),
                                 child: Text(
@@ -99,10 +103,11 @@ class ChatListItem extends StatelessWidget {
                                       .copyWith(color: AppColors.black),
                                 ),
                               ),
+                            if (chat.lastMessageText != null)
                             Expanded(
                               child: Text(
                                 _getMessagePreview(
-                                    chat.lastMessageType, chat.lastMessageText),
+                                    MessageType.values.byName(chat.lastMessageType!), chat.lastMessageText,),
                                 style: AppTextStyles.extraSmall
                                     .copyWith(color: AppColors.darkGray),
                                 maxLines: 1,
@@ -139,7 +144,6 @@ class ChatListItem extends StatelessWidget {
         return 'Голосовое сообщение';
       case MessageType.text:
         return text ?? '';
-     
     }
   }
 
