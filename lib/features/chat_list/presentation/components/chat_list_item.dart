@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_chat/app/theme/colors.dart';
 import 'package:flutter_chat/app/theme/icons.dart';
 import 'package:flutter_chat/app/theme/text_styles.dart';
+import 'package:flutter_chat/core/supabase/service/supabase_service.dart';
 import 'package:flutter_chat/core/utils/extentions/date_extensions.dart';
 import 'package:flutter_chat/core/utils/typedef/typedef.dart';
 import 'package:flutter_chat/features/chat/data/models/atachment_type.dart';
@@ -26,7 +27,7 @@ class ChatListItem extends StatelessWidget {
     final colorIndex = chat.user.username.isNotEmpty
         ? chat.user.username.codeUnitAt(0) % 3
         : 0;
-
+    final userId = supabase.auth.currentUser?.id;
     return Dismissible(
       key: Key('chat_${chat.id}'),
       direction: DismissDirection.endToStart,
@@ -89,7 +90,7 @@ class ChatListItem extends StatelessWidget {
                         // Message preview
                         Row(
                           children: [
-                            if (chat.lastMessageIsMe ?? false)
+                            if (chat.lastMessageUserId != null && chat.lastMessageUserId == userId)
                               Padding(
                                 padding: const EdgeInsets.only(right: 4),
                                 child: Text(
