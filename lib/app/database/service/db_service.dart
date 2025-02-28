@@ -158,7 +158,7 @@ class SyncService {
       await _syncMessages();
       
       // Sync unsynced files
-      await _fileUploadService.syncUnsyncedFiles();
+      //await _fileUploadService.syncUnsyncedFiles();
       
     } catch (e) {
       debugPrint('Error during sync: $e');

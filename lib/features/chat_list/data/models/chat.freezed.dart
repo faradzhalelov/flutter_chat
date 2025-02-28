@@ -26,7 +26,7 @@ mixin _$ChatModel {
   DateTime get createdAt => throw _privateConstructorUsedError;
   DateTime? get lastMessageAt => throw _privateConstructorUsedError;
   String? get lastMessageText => throw _privateConstructorUsedError;
-  bool? get lastMessageIsMe => throw _privateConstructorUsedError;
+  String? get lastMessageUserId => throw _privateConstructorUsedError;
   MessageType? get lastMessageType => throw _privateConstructorUsedError;
 
   /// Serializes this ChatModel to a JSON map.
@@ -50,7 +50,7 @@ abstract class $ChatModelCopyWith<$Res> {
       DateTime createdAt,
       DateTime? lastMessageAt,
       String? lastMessageText,
-      bool? lastMessageIsMe,
+      String? lastMessageUserId,
       MessageType? lastMessageType});
 
   $UserModelCopyWith<$Res> get user;
@@ -76,7 +76,7 @@ class _$ChatModelCopyWithImpl<$Res, $Val extends ChatModel>
     Object? createdAt = null,
     Object? lastMessageAt = freezed,
     Object? lastMessageText = freezed,
-    Object? lastMessageIsMe = freezed,
+    Object? lastMessageUserId = freezed,
     Object? lastMessageType = freezed,
   }) {
     return _then(_value.copyWith(
@@ -100,10 +100,10 @@ class _$ChatModelCopyWithImpl<$Res, $Val extends ChatModel>
           ? _value.lastMessageText
           : lastMessageText // ignore: cast_nullable_to_non_nullable
               as String?,
-      lastMessageIsMe: freezed == lastMessageIsMe
-          ? _value.lastMessageIsMe
-          : lastMessageIsMe // ignore: cast_nullable_to_non_nullable
-              as bool?,
+      lastMessageUserId: freezed == lastMessageUserId
+          ? _value.lastMessageUserId
+          : lastMessageUserId // ignore: cast_nullable_to_non_nullable
+              as String?,
       lastMessageType: freezed == lastMessageType
           ? _value.lastMessageType
           : lastMessageType // ignore: cast_nullable_to_non_nullable
@@ -136,7 +136,7 @@ abstract class _$$ChatModelImplCopyWith<$Res>
       DateTime createdAt,
       DateTime? lastMessageAt,
       String? lastMessageText,
-      bool? lastMessageIsMe,
+      String? lastMessageUserId,
       MessageType? lastMessageType});
 
   @override
@@ -161,7 +161,7 @@ class __$$ChatModelImplCopyWithImpl<$Res>
     Object? createdAt = null,
     Object? lastMessageAt = freezed,
     Object? lastMessageText = freezed,
-    Object? lastMessageIsMe = freezed,
+    Object? lastMessageUserId = freezed,
     Object? lastMessageType = freezed,
   }) {
     return _then(_$ChatModelImpl(
@@ -185,10 +185,10 @@ class __$$ChatModelImplCopyWithImpl<$Res>
           ? _value.lastMessageText
           : lastMessageText // ignore: cast_nullable_to_non_nullable
               as String?,
-      lastMessageIsMe: freezed == lastMessageIsMe
-          ? _value.lastMessageIsMe
-          : lastMessageIsMe // ignore: cast_nullable_to_non_nullable
-              as bool?,
+      lastMessageUserId: freezed == lastMessageUserId
+          ? _value.lastMessageUserId
+          : lastMessageUserId // ignore: cast_nullable_to_non_nullable
+              as String?,
       lastMessageType: freezed == lastMessageType
           ? _value.lastMessageType
           : lastMessageType // ignore: cast_nullable_to_non_nullable
@@ -206,7 +206,7 @@ class _$ChatModelImpl implements _ChatModel {
       required this.createdAt,
       this.lastMessageAt,
       this.lastMessageText,
-      this.lastMessageIsMe,
+      this.lastMessageUserId,
       this.lastMessageType});
 
   factory _$ChatModelImpl.fromJson(Map<String, dynamic> json) =>
@@ -224,13 +224,13 @@ class _$ChatModelImpl implements _ChatModel {
   @override
   final String? lastMessageText;
   @override
-  final bool? lastMessageIsMe;
+  final String? lastMessageUserId;
   @override
   final MessageType? lastMessageType;
 
   @override
   String toString() {
-    return 'ChatModel(id: $id, user: $user, createdAt: $createdAt, lastMessageAt: $lastMessageAt, lastMessageText: $lastMessageText, lastMessageIsMe: $lastMessageIsMe, lastMessageType: $lastMessageType)';
+    return 'ChatModel(id: $id, user: $user, createdAt: $createdAt, lastMessageAt: $lastMessageAt, lastMessageText: $lastMessageText, lastMessageUserId: $lastMessageUserId, lastMessageType: $lastMessageType)';
   }
 
   @override
@@ -246,8 +246,8 @@ class _$ChatModelImpl implements _ChatModel {
                 other.lastMessageAt == lastMessageAt) &&
             (identical(other.lastMessageText, lastMessageText) ||
                 other.lastMessageText == lastMessageText) &&
-            (identical(other.lastMessageIsMe, lastMessageIsMe) ||
-                other.lastMessageIsMe == lastMessageIsMe) &&
+            (identical(other.lastMessageUserId, lastMessageUserId) ||
+                other.lastMessageUserId == lastMessageUserId) &&
             (identical(other.lastMessageType, lastMessageType) ||
                 other.lastMessageType == lastMessageType));
   }
@@ -255,7 +255,7 @@ class _$ChatModelImpl implements _ChatModel {
   @JsonKey(includeFromJson: false, includeToJson: false)
   @override
   int get hashCode => Object.hash(runtimeType, id, user, createdAt,
-      lastMessageAt, lastMessageText, lastMessageIsMe, lastMessageType);
+      lastMessageAt, lastMessageText, lastMessageUserId, lastMessageType);
 
   /// Create a copy of ChatModel
   /// with the given fields replaced by the non-null parameter values.
@@ -280,7 +280,7 @@ abstract class _ChatModel implements ChatModel {
       required final DateTime createdAt,
       final DateTime? lastMessageAt,
       final String? lastMessageText,
-      final bool? lastMessageIsMe,
+      final String? lastMessageUserId,
       final MessageType? lastMessageType}) = _$ChatModelImpl;
 
   factory _ChatModel.fromJson(Map<String, dynamic> json) =
@@ -297,7 +297,7 @@ abstract class _ChatModel implements ChatModel {
   @override
   String? get lastMessageText;
   @override
-  bool? get lastMessageIsMe;
+  String? get lastMessageUserId;
   @override
   MessageType? get lastMessageType;
 

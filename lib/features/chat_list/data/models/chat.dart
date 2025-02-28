@@ -14,7 +14,7 @@ class ChatModel with _$ChatModel {
     required DateTime createdAt,
     DateTime? lastMessageAt,
     String? lastMessageText,
-    bool? lastMessageIsMe,
+    String? lastMessageUserId,
     MessageType? lastMessageType,
   }) = _ChatModel;
 
@@ -33,6 +33,6 @@ class ChatModel with _$ChatModel {
         : null,
       lastMessageText: chatData['last_message_text'] as String?,
       lastMessageType:  chatData['last_message_type'] != null ? MessageType.values.byName(chatData['last_message_type'] as String) : null,
-      lastMessageIsMe: chatData['last_message_is_me'] as bool? ?? false,
+      lastMessageUserId: chatData['last_message_user_id'] as String?,
     );
 }

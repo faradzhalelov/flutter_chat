@@ -126,7 +126,7 @@ class LoginView extends ConsumerWidget {
 
         ),
         TextButton(
-          onPressed: isLoading ? null : () => context.go('/register'),
+          onPressed: isLoading ? null : () => context.push('/register'),
           child:  Text(
             'Зарегистрироваться',
             style: AppTextStyles.small,

@@ -1,4 +1,5 @@
 // lib/core/router/app_router.dart
+import 'dart:convert';
 import 'dart:developer';
 
 import 'package:flutter/material.dart';
@@ -9,6 +10,7 @@ import 'package:flutter_chat/features/auth/presentation/view/register_view.dart'
 import 'package:flutter_chat/features/chat/presentation/view/chat_view.dart';
 import 'package:flutter_chat/features/chat_list/presentation/view/chat_list_view.dart';
 import 'package:flutter_chat/features/common/splash_view.dart';
+import 'package:flutter_chat/features/profile/data/models/user.dart';
 import 'package:flutter_chat/features/profile/presentation/view/profile_view.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
@@ -55,8 +57,13 @@ GoRouter appRouter(Ref ref) => GoRouter(
       GoRoute(
         path: '/${ChatView.routePath}/:chatId',
         builder: (context, state) {
-          final chatId = state.pathParameters['chatId']!;
-          return ChatView(chatId: chatId);
+          final pathParameters = state.pathParameters;
+          final extra = state.extra as Map<String, dynamic>?;
+          final chatId = pathParameters['chatId']!;
+          final otherUser = extra?['otherUser'] != null 
+            ? UserModel.fromJson(jsonDecode(extra!['otherUser'] as String) as Map<String, dynamic>) 
+            : null;
+          return ChatView(chatId: chatId, otherUser: otherUser,);
         },
       ),
       GoRoute(

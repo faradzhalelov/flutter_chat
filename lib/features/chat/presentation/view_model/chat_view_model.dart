@@ -3,8 +3,9 @@ import 'dart:developer';
 import 'dart:io';
 
 import 'package:file_picker/file_picker.dart';
-import 'package:flutter/material.dart';
+import 'package:flutter_chat/core/supabase/service/providers/file_upload_service_provider.dart';
 import 'package:flutter_chat/core/supabase/service/supabase_service.dart';
+import 'package:flutter_chat/features/chat/data/models/atachment_type.dart';
 import 'package:flutter_chat/features/chat/data/repositories/provider/chat_repository_provider.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:path_provider/path_provider.dart';
@@ -30,9 +31,7 @@ class ChatViewModel extends _$ChatViewModel {
   /// Send a text message
   Future<void> sendTextMessage(String text) async {
     if (text.trim().isEmpty) return;
-
     state = const AsyncValue.loading();
-
     try {
       await ref.read(chatRepositoryProvider).sendTextMessage(chatId, text);
       state = const AsyncValue.data(null);
@@ -45,15 +44,18 @@ class ChatViewModel extends _$ChatViewModel {
   Future<void> sendImageMessage() async {
     final picker = ImagePicker();
     final pickedFile = await picker.pickImage(source: ImageSource.gallery);
-
     if (pickedFile == null) return;
-
     state = const AsyncValue.loading();
-
     try {
       final userId = supabase.auth.currentUser!.id;
-      final attachment = await ref.read(chatRepositoryProvider).uploadImage(pickedFile, chatId, userId);
-      await ref.read(chatRepositoryProvider).sendFileMessage(chatId, attachment, pickedFile.name);
+      //upload to bucket
+      final String? attachementUrl = await ref
+          .read(fileUploadServiceProvider)
+          .uploadFile(pickedFile, MessageType.image, chatId, userId);
+      //save message in db
+      //save message in supabase
+      await ref.read(chatRepositoryProvider).sendFileMessage(
+          chatId, MessageType.image, attachementUrl, pickedFile.name);
       state = const AsyncValue.data(null);
     } catch (e, st) {
       log('sendImageMessage:$e $st');
@@ -64,15 +66,28 @@ class ChatViewModel extends _$ChatViewModel {
   /// Pick and send a video
   Future<void> sendVideoMessage() async {
     final picker = ImagePicker();
-    final pickedFile = await picker.pickVideo(source: ImageSource.gallery);
+    final pickedFile = await picker.pickVideo(
+        source: ImageSource.gallery, maxDuration: const Duration(minutes: 1));
 
     if (pickedFile == null) return;
 
     state = const AsyncValue.loading();
 
     try {
-      final file = File(pickedFile.path);
-      await _repository.sendVideoMessage(chatId, file);
+      final userId = supabase.auth.currentUser!.id;
+      //upload to bucket
+      final String? attachementUrl = await ref
+          .read(fileUploadServiceProvider)
+          .uploadFile(pickedFile, MessageType.video, chatId, userId);
+  
+      //save message in db
+      //save message in supabase
+      await ref.read(chatRepositoryProvider).sendFileMessage(
+            chatId,
+            MessageType.video,
+            attachementUrl,
+            pickedFile.name,
+          );
       state = const AsyncValue.data(null);
     } catch (e, st) {
       state = AsyncValue.error(e, st);
@@ -82,14 +97,26 @@ class ChatViewModel extends _$ChatViewModel {
   /// Pick and send a file
   Future<void> sendFileMessage() async {
     final result = await FilePicker.platform.pickFiles();
-
-    if (result == null || result.files.single.path == null) return;
+    final pickedFile = result?.xFiles.first;
+    if (pickedFile == null) return;
 
     state = const AsyncValue.loading();
 
     try {
-      final file = File(result.files.single.path!);
-      await _repository.sendFileMessage(chatId, file);
+      final userId = supabase.auth.currentUser!.id;
+      //upload to bucket
+      final String? attachementUrl = await ref
+          .read(fileUploadServiceProvider)
+          .uploadFile(pickedFile, MessageType.file, chatId, userId);
+
+      //save message in db
+      //save message in supabase
+      await ref.read(chatRepositoryProvider).sendFileMessage(
+            chatId,
+            MessageType.file,
+            attachementUrl,
+            pickedFile.name,
+          );
       state = const AsyncValue.data(null);
     } catch (e, st) {
       state = AsyncValue.error(e, st);
@@ -127,11 +154,22 @@ class ChatViewModel extends _$ChatViewModel {
 
     try {
       await _audioRecorder.stop();
-
-      final file = File(_recordingPath!);
-      if (await file.exists()) {
-        await _repository.sendAudioMessage(chatId, file);
-      }
+      final pickedFile = XFile(_recordingPath!);
+      
+      final userId = supabase.auth.currentUser!.id;
+      //upload to bucket
+      final String? attachementUrl = await ref
+          .read(fileUploadServiceProvider)
+          .uploadFile(pickedFile, MessageType.audio, chatId, userId);
+     
+      //save message in db
+      //save message in supabase
+      await ref.read(chatRepositoryProvider).sendFileMessage(
+            chatId,
+            MessageType.audio,
+            attachementUrl,
+            pickedFile.name,
+          );
 
       _recordingPath = null;
       state = const AsyncValue.data(null);
@@ -163,46 +201,10 @@ class ChatViewModel extends _$ChatViewModel {
   /// Mark messages as read
   Future<void> markMessagesAsRead() async {
     try {
-      await _repository.markMessagesAsRead(chatId);
+      await ref.read(chatRepositoryProvider).markMessagesAsRead(chatId);
     } catch (e) {
       // Handle error silently
     }
   }
-
-  /// Delete a chat
-  Future<bool> deleteChat() async {
-    state = const AsyncValue.loading();
-
-    try {
-      await _repository.deleteChat(chatId);
-      state = const AsyncValue.data(null);
-      return true;
-    } catch (e, st) {
-      state = AsyncValue.error(e, st);
-      return false;
-    }
-  }
 }
 
-// Text input controller provider
-final textEditingControllerProvider =
-    Provider.autoDispose<TextEditingController>((ref) {
-  final controller = TextEditingController();
-
-  ref.onDispose(() {
-    controller.dispose();
-  });
-
-  return controller;
-});
-
-// Scroll controller provider for chat messages
-final scrollControllerProvider = Provider.autoDispose<ScrollController>((ref) {
-  final controller = ScrollController();
-
-  ref.onDispose(() {
-    controller.dispose();
-  });
-
-  return controller;
-});

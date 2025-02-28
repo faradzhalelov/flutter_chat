@@ -15,7 +15,7 @@ _$ChatModelImpl _$$ChatModelImplFromJson(Map<String, dynamic> json) =>
           ? null
           : DateTime.parse(json['lastMessageAt'] as String),
       lastMessageText: json['lastMessageText'] as String?,
-      lastMessageIsMe: json['lastMessageIsMe'] as bool?,
+      lastMessageUserId: json['lastMessageUserId'] as String?,
       lastMessageType:
           $enumDecodeNullable(_$MessageTypeEnumMap, json['lastMessageType']),
     );
@@ -27,7 +27,7 @@ Map<String, dynamic> _$$ChatModelImplToJson(_$ChatModelImpl instance) =>
       'createdAt': instance.createdAt.toIso8601String(),
       'lastMessageAt': instance.lastMessageAt?.toIso8601String(),
       'lastMessageText': instance.lastMessageText,
-      'lastMessageIsMe': instance.lastMessageIsMe,
+      'lastMessageUserId': instance.lastMessageUserId,
       'lastMessageType': _$MessageTypeEnumMap[instance.lastMessageType],
     };
 

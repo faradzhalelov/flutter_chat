@@ -1,15 +1,24 @@
 import 'dart:developer';
 
+import 'package:flutter_chat/core/supabase/service/supabase_service.dart';
 import 'package:flutter_chat/features/chat/data/models/atachment_type.dart';
 import 'package:flutter_chat/features/chat/data/models/message.dart';
 import 'package:flutter_chat/features/chat/data/repositories/chat_repository.dart';
 import 'package:flutter_chat/features/profile/data/models/user.dart';
 
 class ChatRepositoryImpl implements ChatRepository {
+
   @override
   Future<List<MessageModel>> getMessagesForChat(String chatId) async {
     try {
-      return [];
+      //load from supabase
+      final messagesByChatId = await supabase.rest
+          .from('messages')
+          .select()
+          .eq('chat_id', chatId)
+          .order('created_at', ascending: true);
+     final messages = messagesByChatId.map((e) => MessageModel.fromJson(e)).toList();      
+      return messages;
     } catch (e) {
       log('getMessagesForChat error: $e');
       rethrow;
@@ -52,7 +61,7 @@ class ChatRepositoryImpl implements ChatRepository {
 
   @override
   Future<MessageModel> sendTextMessage(String chatId, String text) async {
-     try {
+    try {
       return MessageModel(
           id: 'id',
           chatId: chatId,
@@ -67,7 +76,7 @@ class ChatRepositoryImpl implements ChatRepository {
 
   @override
   Stream<MessageModel> subscribeToMessages(String chatId) {
-      try {
+    try {
       return const Stream.empty();
     } catch (e) {
       log('subscribeToMessages error: $e');

@@ -22,7 +22,8 @@ final availableUsersProvider =
     final response = await supabase
         .from('users')
         .select(
-            'id, username, email, created_at, last_seen, is_online, avatar_url',)
+          'id, username, email, created_at, is_online, avatar_url',
+        )
         .neq('id', currentUser.id);
 
     final allUsers =
@@ -75,36 +76,27 @@ class CreateChatDialog extends ConsumerStatefulWidget {
 }
 
 class _CreateChatDialogState extends ConsumerState<CreateChatDialog> {
+  final StateProvider<String> searchProvider =
+      StateProvider<String>((ref) => '');
+  final StateProvider<UserModel?> selectedUserProvider =
+      StateProvider<UserModel?>((ref) => null);
+  final AutoDisposeStateProvider<bool> loadingProvider =
+      AutoDisposeStateProvider<bool>((ref) => false);
+
   @override
-  Widget build(BuildContext context,) {
-    // Local state with hooks
-    final searchController = useTextEditingController();
-    final selectedUser = useState<UserModel?>(null);
-    final isLoading = useState(false);
-
-    // Watch providers
-    final usersAsync = ref.watch(availableUsersProvider);
-    final query = useState('');
-
-    // Listen to search changes
-    useEffect(
-      () {
-        void listener() {
-          query.value = searchController.text;
-        }
-
-        searchController.addListener(listener);
-        return () => searchController.removeListener(listener);
-      },
-      [searchController],
-    );
-
+  Widget build(
+    BuildContext context,
+  ) {
+    final query = ref.watch(searchProvider);
+    final isLoading = ref.watch(loadingProvider);
     // Get filtered users based on search query
-    final filteredUsers = ref.watch(filteredUsersProvider(query.value));
+    final filteredUsers = ref.watch(filteredUsersProvider(query));
     final textFieldBorder = OutlineInputBorder(
       borderRadius: BorderRadius.circular(12),
       borderSide: const BorderSide(color: AppColors.divider),
     );
+    final usersAsync = ref.watch(availableUsersProvider);
+    final selectedUser = ref.watch(selectedUserProvider);
     return Dialog(
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(16),
@@ -126,7 +118,8 @@ class _CreateChatDialogState extends ConsumerState<CreateChatDialog> {
 
             // Search field
             TextField(
-              controller: searchController,
+              onChanged: (value) =>
+                  ref.read(searchProvider.notifier).update((state) => value),
               decoration: InputDecoration(
                 hintText: 'Поиск пользователей',
                 prefixIcon: const Icon(Icomoon.searchS),
@@ -148,7 +141,7 @@ class _CreateChatDialogState extends ConsumerState<CreateChatDialog> {
               child: usersAsync.when(
                 data: (_) {
                   if (filteredUsers.isEmpty) {
-                    return _buildEmptyList(searchController.text.isNotEmpty);
+                    return _buildEmptyList(query.isNotEmpty);
                   }
 
                   return ListView.builder(
@@ -156,13 +149,15 @@ class _CreateChatDialogState extends ConsumerState<CreateChatDialog> {
                     itemCount: filteredUsers.length,
                     itemBuilder: (context, index) {
                       final user = filteredUsers[index];
-                      final isSelected = selectedUser.value?.id == user.id;
+                      final isSelected = selectedUser?.id == user.id;
 
                       return _buildUserListItem(
                         user: user,
                         isSelected: isSelected,
                         onTap: () {
-                          selectedUser.value = isSelected ? null : user;
+                          ref
+                              .read(selectedUserProvider.notifier)
+                              .update((state) => isSelected ? null : user);
                         },
                       );
                     },
@@ -199,9 +194,8 @@ class _CreateChatDialogState extends ConsumerState<CreateChatDialog> {
               mainAxisAlignment: MainAxisAlignment.end,
               children: [
                 TextButton(
-                  onPressed: isLoading.value
-                      ? null
-                      : () => Navigator.of(context).pop(),
+                  onPressed:
+                      isLoading ? null : () => Navigator.of(context).pop(),
                   child: Text(
                     'Отмена',
                     style: AppTextStyles.small
@@ -210,19 +204,20 @@ class _CreateChatDialogState extends ConsumerState<CreateChatDialog> {
                 ),
                 const SizedBox(width: 8),
                 ElevatedButton(
-                  onPressed: (selectedUser.value == null || isLoading.value)
+                  onPressed: (selectedUser == null || isLoading)
                       ? null
-                      : () => _createChat(
+                      : () async {
+                          await _createChat(
                             context,
                             ref,
-                            selectedUser.value!.id,
-                            isLoading,
-                          ),
+                            selectedUser.id,
+                          );
+                        },
                   style: ElevatedButton.styleFrom(
                     backgroundColor: AppColors.black,
                     foregroundColor: Colors.white,
                   ),
-                  child: isLoading.value
+                  child: isLoading
                       ? const SizedBox(
                           width: 20,
                           height: 20,
@@ -320,12 +315,10 @@ class _CreateChatDialogState extends ConsumerState<CreateChatDialog> {
     BuildContext context,
     WidgetRef ref,
     String userId,
-    ValueNotifier<bool> isLoading,
   ) async {
-    isLoading.value = true;
-
+    ref.read(loadingProvider.notifier).update((state) => true);
     try {
-          await ref.read(chatListViewModelProvider.notifier).createChat(userId);
+      await ref.read(chatListViewModelProvider.notifier).createChat(userId);
       if (context.mounted) {
         // Close dialog
         Navigator.of(context).pop();
@@ -342,7 +335,7 @@ class _CreateChatDialogState extends ConsumerState<CreateChatDialog> {
         );
       }
     } finally {
-      isLoading.value = false;
+      //ref.read(loadingProvider.notifier).update((state) => false);
     }
   }
 }

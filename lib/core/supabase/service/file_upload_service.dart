@@ -11,35 +11,33 @@ import 'package:uuid/uuid.dart';
 
 // File Upload Service
 class FileUploadService {
-  
- const FileUploadService();
-  
+  const FileUploadService();
+
   // Upload file to Supabase storage
-  Future<String?> uploadFileToSupabase(File file, MessageType type, String chatId) async {
+  Future<String?> uploadFileToSupabase(
+      File file, MessageType type, String chatId,) async {
     try {
       final String bucketName = type.name;
       final String userId = supabase.auth.currentUser?.id ?? 'anonymous';
-      final String fileName = '${const Uuid().v4()}${path.extension(file.path)}';
+      final String fileName =
+          '${const Uuid().v4()}${path.extension(file.path)}';
       // Include userId in the path to help with RLS policies
       final String filePath = '$userId/$chatId/$fileName';
-      
+
       // Upload to Supabase storage
-       await supabase
-          .storage
-          .from(bucketName)
-          .upload(filePath, file, 
+      await supabase.storage.from(bucketName).upload(
+            filePath,
+            file,
             fileOptions: const FileOptions(
-             // cacheControl: '3600',
+              // cacheControl: '3600',
               upsert: true,
             ),
           );
-      
+
       // Get public URL
-      final String publicUrl = supabase
-          .storage
-          .from(bucketName)
-          .getPublicUrl(filePath);
-          
+      final String publicUrl =
+          supabase.storage.from(bucketName).getPublicUrl(filePath);
+
       return publicUrl;
     } catch (e) {
       debugPrint('Error uploading file: $e');
@@ -48,37 +46,35 @@ class FileUploadService {
     }
   }
 
-  
   // Save file locally and return local path
-  Future<String> saveFileLocally(File file, MessageType type, String fileName) async {
+  Future<String> saveFileLocally(
+      File file, MessageType type, String fileName) async {
     try {
       final Directory appDir = await getApplicationDocumentsDirectory();
       final String typeFolder = type.name;
       final Directory typeDir = Directory('${appDir.path}/$typeFolder');
-      
+
       if (!await typeDir.exists()) {
         await typeDir.create(recursive: true);
       }
-      
+
       final String localPath = '${typeDir.path}/$fileName';
       await file.copy(localPath);
-      
+
       return localPath;
     } catch (e) {
       debugPrint('Error saving file locally: $e');
       rethrow;
     }
   }
-  
+
   // Upload file
-  Future<(String, String?)> uploadFile(XFile xFile, MessageType type,String chatId, String userId, {String? caption}) async {
+  Future< String?> uploadFile(
+      XFile xFile, MessageType type, String chatId, String userId,
+      {String? caption,}) async {
     final file = File(xFile.path);
-    final fileName = path.basename(xFile.path);
-    // Save locally first
-    final localPath = await saveFileLocally(file, type, fileName);
     // Upload to Supabase
     final attachmentUrl = await uploadFileToSupabase(file, type, chatId);
-    return (localPath, attachmentUrl);
+    return attachmentUrl;
   }
-  
 }

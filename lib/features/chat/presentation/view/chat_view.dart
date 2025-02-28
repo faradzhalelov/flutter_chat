@@ -1,22 +1,23 @@
-
-import 'package:collection/collection.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_chat/app/theme/colors.dart';
 import 'package:flutter_chat/app/theme/icons.dart';
 import 'package:flutter_chat/app/theme/text_styles.dart';
-import 'package:flutter_chat/core/supabase/repository/supabase_repository.dart';
 import 'package:flutter_chat/features/chat/components/message/date_separator.dart';
 import 'package:flutter_chat/features/chat/components/message/message_bubble.dart';
 import 'package:flutter_chat/features/chat/components/message/message_input.dart';
 import 'package:flutter_chat/features/chat/data/models/message.dart';
+import 'package:flutter_chat/features/chat/data/repositories/provider/messages_pod.dart';
+import 'package:flutter_chat/features/chat/presentation/view_model/chat_view_model.dart';
 // import 'package:flutter_chat/features/chat/presentation/view_model/chat_view_model.dart';
 import 'package:flutter_chat/features/common/widgets/user_avatar.dart';
+import 'package:flutter_chat/features/profile/data/models/user.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 class ChatView extends ConsumerStatefulWidget {
-  const ChatView({required this.chatId, super.key});
+  const ChatView({required this.chatId, this.otherUser,super.key});
   final String chatId;
+  final UserModel? otherUser;
   static const String routePath = 'chat';
 
   @override
@@ -25,13 +26,17 @@ class ChatView extends ConsumerStatefulWidget {
 
 class _ChatViewState extends ConsumerState<ChatView> {
   final ScrollController _scrollController = ScrollController();
+  late final ChatViewModel viewModel;
+  String get chatId => widget.chatId;
+  UserModel? get otherUser => widget.otherUser;
 
   @override
   void initState() {
     super.initState();
+    viewModel = ref.read(chatViewModelProvider(chatId).notifier);
     // Mark messages as read when screen opens
     Future.microtask(() {
-      ref.read(chatRepositoryProvider).markMessagesAsRead(widget.chatId);
+      viewModel.markMessagesAsRead();
     });
   }
 
@@ -53,14 +58,8 @@ class _ChatViewState extends ConsumerState<ChatView> {
 
   @override
   Widget build(BuildContext context) {
-    final messagesStream = ref.watch(chatMessagesProvider(widget.chatId));
-    // final chatViewModel = ref.watch(chatViewModelProvider(widget.chatId));
-    // Get chat details to show user info in app bar
-    final chatsStream = ref.watch(chatListStreamProvider).asData?.value ?? [];
+    final messagesStream = ref.watch(messagesPodProvider(chatId));
 
-    final chat = chatsStream.firstWhereOrNull(
-      (c) => c.id == widget.chatId,
-    );
     return Scaffold(
       backgroundColor: AppColors.appBackground,
       appBar: AppBar(
@@ -72,12 +71,12 @@ class _ChatViewState extends ConsumerState<ChatView> {
           onPressed: () => context.go('/'),
         ),
         titleSpacing: 0,
-        title: chat != null
+        title: otherUser != null
             ? Row(
                 children: [
                   UserAvatar(
-                    userName: chat.user.username,
-                    avatarUrl: chat.user.avatarUrl,
+                    userName: otherUser?.username ?? '',
+                    avatarUrl: otherUser?.avatarUrl,
                     size: 50,
                   ),
                   const SizedBox(width: 8),
@@ -85,13 +84,13 @@ class _ChatViewState extends ConsumerState<ChatView> {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(
-                        chat.user.username,
+                        otherUser?.username ?? '',
                         style: AppTextStyles.smallSemiBold.copyWith(
                           color: Colors.black,
                         ),
                       ),
                       Text(
-                        chat.user.isOnline
+                        otherUser?.isOnline ?? false
                             ? 'В сети'
                             : 'Не в сети', // Online status
                         style: AppTextStyles.extraSmall.copyWith(
@@ -111,7 +110,7 @@ class _ChatViewState extends ConsumerState<ChatView> {
           children: [
             // Messages list
             Expanded(
-              child:  messagesStream.when(
+              child: messagesStream.when(
                 data: (messages) {
                   if (messages.isEmpty) {
                     return Center(
@@ -222,8 +221,7 @@ class _ChatViewState extends ConsumerState<ChatView> {
                         ),
                         const SizedBox(height: 16),
                         ElevatedButton(
-                          onPressed: () =>
-                              ref.refresh(chatMessagesProvider(widget.chatId)),
+                          onPressed: null,
                           child: const Text('Повторить'),
                         ),
                       ],

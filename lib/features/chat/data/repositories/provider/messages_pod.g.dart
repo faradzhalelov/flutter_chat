@@ -1,12 +1,12 @@
 // GENERATED CODE - DO NOT MODIFY BY HAND
 
-part of 'chat_view_model.dart';
+part of 'messages_pod.dart';
 
 // **************************************************************************
 // RiverpodGenerator
 // **************************************************************************
 
-String _$chatViewModelHash() => r'82b76cea6140f0527bbc8235d466ff802da7d965';
+String _$messagesPodHash() => r'92efa4bd493eb834ec69cd1699cb9ed12756b79a';
 
 /// Copied from Dart SDK
 class _SystemHash {
@@ -29,43 +29,36 @@ class _SystemHash {
   }
 }
 
-abstract class _$ChatViewModel extends BuildlessAutoDisposeAsyncNotifier<void> {
+abstract class _$MessagesPod
+    extends BuildlessAutoDisposeAsyncNotifier<List<MessageModel>> {
   late final String chatId;
 
-  FutureOr<void> build(
+  FutureOr<List<MessageModel>> build(
     String chatId,
   );
 }
 
-/// ViewModel for the chat screen using the abstract ChatRepository
-///
-/// Copied from [ChatViewModel].
-@ProviderFor(ChatViewModel)
-const chatViewModelProvider = ChatViewModelFamily();
+/// See also [MessagesPod].
+@ProviderFor(MessagesPod)
+const messagesPodProvider = MessagesPodFamily();
 
-/// ViewModel for the chat screen using the abstract ChatRepository
-///
-/// Copied from [ChatViewModel].
-class ChatViewModelFamily extends Family<AsyncValue<void>> {
-  /// ViewModel for the chat screen using the abstract ChatRepository
-  ///
-  /// Copied from [ChatViewModel].
-  const ChatViewModelFamily();
+/// See also [MessagesPod].
+class MessagesPodFamily extends Family<AsyncValue<List<MessageModel>>> {
+  /// See also [MessagesPod].
+  const MessagesPodFamily();
 
-  /// ViewModel for the chat screen using the abstract ChatRepository
-  ///
-  /// Copied from [ChatViewModel].
-  ChatViewModelProvider call(
+  /// See also [MessagesPod].
+  MessagesPodProvider call(
     String chatId,
   ) {
-    return ChatViewModelProvider(
+    return MessagesPodProvider(
       chatId,
     );
   }
 
   @override
-  ChatViewModelProvider getProviderOverride(
-    covariant ChatViewModelProvider provider,
+  MessagesPodProvider getProviderOverride(
+    covariant MessagesPodProvider provider,
   ) {
     return call(
       provider.chatId,
@@ -84,34 +77,30 @@ class ChatViewModelFamily extends Family<AsyncValue<void>> {
       _allTransitiveDependencies;
 
   @override
-  String? get name => r'chatViewModelProvider';
+  String? get name => r'messagesPodProvider';
 }
 
-/// ViewModel for the chat screen using the abstract ChatRepository
-///
-/// Copied from [ChatViewModel].
-class ChatViewModelProvider
-    extends AutoDisposeAsyncNotifierProviderImpl<ChatViewModel, void> {
-  /// ViewModel for the chat screen using the abstract ChatRepository
-  ///
-  /// Copied from [ChatViewModel].
-  ChatViewModelProvider(
+/// See also [MessagesPod].
+class MessagesPodProvider extends AutoDisposeAsyncNotifierProviderImpl<
+    MessagesPod, List<MessageModel>> {
+  /// See also [MessagesPod].
+  MessagesPodProvider(
     String chatId,
   ) : this._internal(
-          () => ChatViewModel()..chatId = chatId,
-          from: chatViewModelProvider,
-          name: r'chatViewModelProvider',
+          () => MessagesPod()..chatId = chatId,
+          from: messagesPodProvider,
+          name: r'messagesPodProvider',
           debugGetCreateSourceHash:
               const bool.fromEnvironment('dart.vm.product')
                   ? null
-                  : _$chatViewModelHash,
-          dependencies: ChatViewModelFamily._dependencies,
+                  : _$messagesPodHash,
+          dependencies: MessagesPodFamily._dependencies,
           allTransitiveDependencies:
-              ChatViewModelFamily._allTransitiveDependencies,
+              MessagesPodFamily._allTransitiveDependencies,
           chatId: chatId,
         );
 
-  ChatViewModelProvider._internal(
+  MessagesPodProvider._internal(
     super._createNotifier, {
     required super.name,
     required super.dependencies,
@@ -124,8 +113,8 @@ class ChatViewModelProvider
   final String chatId;
 
   @override
-  FutureOr<void> runNotifierBuild(
-    covariant ChatViewModel notifier,
+  FutureOr<List<MessageModel>> runNotifierBuild(
+    covariant MessagesPod notifier,
   ) {
     return notifier.build(
       chatId,
@@ -133,10 +122,10 @@ class ChatViewModelProvider
   }
 
   @override
-  Override overrideWith(ChatViewModel Function() create) {
+  Override overrideWith(MessagesPod Function() create) {
     return ProviderOverride(
       origin: this,
-      override: ChatViewModelProvider._internal(
+      override: MessagesPodProvider._internal(
         () => create()..chatId = chatId,
         from: from,
         name: null,
@@ -149,13 +138,14 @@ class ChatViewModelProvider
   }
 
   @override
-  AutoDisposeAsyncNotifierProviderElement<ChatViewModel, void> createElement() {
-    return _ChatViewModelProviderElement(this);
+  AutoDisposeAsyncNotifierProviderElement<MessagesPod, List<MessageModel>>
+      createElement() {
+    return _MessagesPodProviderElement(this);
   }
 
   @override
   bool operator ==(Object other) {
-    return other is ChatViewModelProvider && other.chatId == chatId;
+    return other is MessagesPodProvider && other.chatId == chatId;
   }
 
   @override
@@ -169,18 +159,19 @@ class ChatViewModelProvider
 
 @Deprecated('Will be removed in 3.0. Use Ref instead')
 // ignore: unused_element
-mixin ChatViewModelRef on AutoDisposeAsyncNotifierProviderRef<void> {
+mixin MessagesPodRef
+    on AutoDisposeAsyncNotifierProviderRef<List<MessageModel>> {
   /// The parameter `chatId` of this provider.
   String get chatId;
 }
 
-class _ChatViewModelProviderElement
-    extends AutoDisposeAsyncNotifierProviderElement<ChatViewModel, void>
-    with ChatViewModelRef {
-  _ChatViewModelProviderElement(super.provider);
+class _MessagesPodProviderElement
+    extends AutoDisposeAsyncNotifierProviderElement<MessagesPod,
+        List<MessageModel>> with MessagesPodRef {
+  _MessagesPodProviderElement(super.provider);
 
   @override
-  String get chatId => (origin as ChatViewModelProvider).chatId;
+  String get chatId => (origin as MessagesPodProvider).chatId;
 }
 // ignore_for_file: type=lint
 // ignore_for_file: subtype_of_sealed_class, invalid_use_of_internal_member, invalid_use_of_visible_for_testing_member, deprecated_member_use_from_same_package

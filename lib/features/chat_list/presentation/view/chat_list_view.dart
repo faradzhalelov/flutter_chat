@@ -231,7 +231,7 @@ class _ChatListViewState extends ConsumerState<ChatListView> {
             final chat = chats[index];
             return ChatListItem(
               chat: chat,
-              onTap: () => context.go('/chat/${chat.id}'),
+              onTap: () => context.push('/chat/${chat.id}', extra:  {'otherUser' : chat.user.toJson()}),
               onDismissed: (_) =>
                   _handleChatDismissed(chat, viewModel),
             );
